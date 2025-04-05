@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.ico">
+
+    <!-- Bootstrap and Custom CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/EmployeeBO.styles.css" asp-append-version="true" />
+</head>
+<body>
+
+    <!-- Header (Navbar) with Logo -->
+    <nav class="navbar navbar-expand-lg" style="background-color: #7B2CBF;">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+
+            <!-- Logo -->
+            <a class="navbar-brand text-white" href="#">
+                <img src="@Url.Content("~/image/Centific.jpg")" alt="Logo" width="150" height="50" class="d-inline-block align-text-top">
+            </a>
+
+            <!-- Logout Button -->
+            <form id="logout_form" method="post" action="@Url.Action("Logout", "HomeLogin")" style="display: none;">
+                <input type="submit" value="Logout" />
+            </form>
+            <a href="javascript:void(0);" onclick="document.getElementById('logout_form').submit();" class="text-white logout-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+
+        </div>
+    </nav>
+    <!-- Main Content Layout -->
+    <div class="p-3" style="width: 250px; background-color: #f8f9fa; border-right: 1px solid #ccc; min-height: 79vh;">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="btn btn-outline-primary mb-2 w-100 text-start" asp-area="" asp-controller="DeAllocation" asp-action="Index">DeAllocation</a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-outline-success mb-2 w-100 text-start" asp-controller="Home" asp-action="Allocation">Allocation</a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-outline-info mb-2 w-100 text-start" asp-controller="Home" asp-action="Reporting">Reporting Management</a>
+        </li>
+    </ul>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
