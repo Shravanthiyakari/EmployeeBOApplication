@@ -1,0 +1,61 @@
+﻿@model EmployeeBOApp.Models.Login
+
+@{
+    Layout = null;
+}
+
+<link rel="stylesheet" href="~/css/Login.css">
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            let isValid = true;
+            let requiredFields = document.querySelectorAll(".required");
+
+            // Clear previous error messages
+            document.querySelectorAll(".validation-error").forEach(function (el) {
+                el.textContent = '';
+            });
+
+            requiredFields.forEach(function (field) {
+                let errorElement = document.getElementById(field.name + "Error");
+
+                if (!field.value.trim()) {
+                    // Show validation error message below the field
+                    errorElement.textContent = field.getAttribute("data-alert");
+                    field.focus();
+                    isValid = false;
+                    event.preventDefault();  // Prevent form submission
+                    return false;
+                }
+            });
+
+            return isValid;
+        });
+    });
+</script>
+
+<div class="text-center app-title-container">
+    <h1 class="display-4 app-title-text">BO Process Application</h1>
+</div>
+<div class="container">
+    @using (Html.BeginForm("Login", "Login", FormMethod.Post))
+    {
+        <h2>Login</h2>
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div style="color:red;">@ViewBag.ErrorMessage</div>
+        }
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.EmailId, "Email Address", new { @class = "required-label" })
+            @Html.TextBoxFor(m => m.EmailId, new { @class = "form-control required", type = "email", placeholder = "Enter your email", data_alert = "Email is required!" })
+            <div class="validation-error" id="EmailIdError"></div>
+            @Html.ValidationMessageFor(m => m.EmailId, "", new { style = "color: #ff0000; font-size: 12px; margin-top: 5px;" })
+        </div>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+    }
+</div>

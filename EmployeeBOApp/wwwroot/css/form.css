@@ -1,65 +1,58 @@
-﻿/* Deallocation Form Container */
+﻿/* General Form Styling */
 form {
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 25px;
+    max-width: 1000px;
+    max-height:900px;
+    margin: 15px auto;
+    padding: 10px 15px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 5px;
     font-family: Arial, sans-serif;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    align-items: flex-start;
+    gap: 5px;
 }
 
-    /* Heading */
+    /* Form Heading */
     form h2 {
-        font-size: 26px;
+        font-size: 10px;
         font-weight: bold;
         text-align: center;
         color: #007bff;
         flex: 1 1 100%;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
     }
-
-/* Fieldsets */
-fieldset {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 20px;
-    background-color: #fff;
-    flex: 1 1 100%;
-}
-
-legend {
-    font-weight: bold;
-    color: #333;
-    padding: 0 10px;
-}
 
 /* Form Group */
 .form-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 15px;
-    max-width: 400px;
+    align-items: flex-start;
+    gap: 2px;
     flex: 1 1 45%;
+    max-width: 48%;
+    margin-bottom: 10px;
 }
 
+/* Labels */
 label {
     font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 5px;
+    font-size: 13px;
     color: #333;
 }
 
+/* Input & Select Fields */
 input[type="text"],
 input[type="date"],
+input[type="number"],
+input[type="file"],
+input[type="email"],
 select {
     width: 100%;
-    padding: 10px;
-    font-size: 14px;
+    padding: 8px;
+    font-size: 13px;
     border: 1px solid #ccc;
     border-radius: 3px;
     background-color: #fff;
@@ -78,19 +71,36 @@ select:focus {
     outline: none;
 }
 
+/* Error Messages */
+.text-danger,
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 11px;
+    display: none;
+}
+
+input:invalid:focus + .text-danger,
+select:invalid:focus + .text-danger {
+    display: block;
+}
 /* Button Container */
+.button-container,
 .form-group.button-container {
     flex: 1 1 100%;
     display: flex;
-    gap: 15px;
+    gap: 10px;
     justify-content: flex-start;
-    margin-top: 10px;
+    margin-top: 5px;
+    padding-top: 10px;
+    /* Removed the border that caused the line */
+    border-top: none;
 }
+
 
 /* Buttons */
 form button {
-    padding: 10px 20px;
-    font-size: 14px;
+    padding: 8px 16px;
+    font-size: 13px;
     font-weight: bold;
     border-radius: 5px;
     border: none;
@@ -98,44 +108,77 @@ form button {
     transition: all 0.3s ease;
 }
 
-    /* Submit */
-    form button[type="submit"] {
-        background-color: #28a745;
-        color: #fff;
+    /* Submit Button */
+form button[type="submit"] {
+     background-color: #28a745;
+     color: #fff;
     }
-
-        form button[type="submit"]:hover {
-            background-color: #218838;
+form button[type="submit"]:hover {
+        background-color: #218838;
         }
 
-    /* Clear */
-    form button[type="reset"],
-    form button.clear-btn {
-        background-color: #6c757d;
-        color: #fff;
+    /* Cancel/Clear Buttons */
+form button[type="reset"],
+form button[type="button"],
+form button.clear-btn {
+background-color: #6c757d;
+color: #fff;
     }
 
-        form button[type="reset"]:hover,
-        form button.clear-btn:hover {
-            background-color: #5a6268;
+ form button[type="reset"]:hover,
+ form button[type="button"]:hover,
+ form button.clear-btn:hover {
+ background-color: #5a6268;
         }
+/* Match Select2 dropdown with button size and spacing */
+.select2-hidden-accessible + .select2-container .select2-selection--single {
+    height: 40px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
 
-/* Responsive */
+/* Inner text of the Select2 box */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #333;
+    line-height: 26px;
+    font-weight:normal;
+   
+}
+
+/* Arrow icon alignment */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+    top: 6px;
+}
+
+/* Dropdown styling (optional, clean look) */
+.select2-container .select2-dropdown {
+    border: 1px solid #ccc;
+    border-radius: 0 0 5px 5px;
+}
+
+
+
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    form {
-        padding: 15px;
-    }
-
     .form-group {
         flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .button-container {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     form button {
         width: 100%;
     }
-
-    .form-group.button-container {
-        flex-direction: column;
-        gap: 10px;
-    }
 }
+

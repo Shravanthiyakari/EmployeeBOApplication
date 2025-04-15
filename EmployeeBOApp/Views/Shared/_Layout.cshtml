@@ -3,36 +3,68 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Centific</title>
 
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/favicon.ico">
-
-    <!-- Bootstrap and Custom CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/form.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/EmployeeBO.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Header.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
 </head>
 <body>
+    <!-- Header -->
     @await Html.PartialAsync("_Header")
-    <main role="main">
-        @RenderBody()
-    </main>
 
-    <footer class="border-top footer text-muted">
+    <div class="container-fluid d-flex">
+        <!-- Sidebar -->
+        <div class="col-md-3 sidebar">
+            <ul class="nav flex-column">
+                @if (User.IsInRole("PM") || User.IsInRole("DM"))
+                {
+                    <!-- PM and DM can see all tabs -->
+                    <li class="nav-item">
+                        <a href="@Url.Action("Deallocation", "Deallocation")" class="nav-link text-primary">Deallocation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Allocation")" class="nav-link text-primary">Allocation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("ReportingManagerChangeRequest", "Reporting")" class="nav-link text-primary">Reporting Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "View")" class="nav-link text-primary">View Requests</a>
+                    </li>
+                }
+                else if (User.IsInRole("GDO"))
+                {
+                    <!-- GDO can only see View Requests -->
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "View")" class="nav-link text-primary">View Requests</a>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-md-9 main-content">
+            @RenderBody()
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-top footer text-muted mt-auto">
         <div class="container">
-            &copy; 2024 - MilkStore - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - Centific - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
+    <!-- Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/js/form.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/payment.js" asp-append-version="true"></script>
-    <script src="~/js/product-actions.js"></script>
-    <script src="~/js/shipment.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

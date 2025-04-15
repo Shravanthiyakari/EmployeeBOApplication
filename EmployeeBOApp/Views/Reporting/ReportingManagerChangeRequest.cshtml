@@ -1,0 +1,88 @@
+﻿@{
+    ViewData["Title"] = "Reporting Manager Change Request";
+}
+
+<h2>Department and Reporting Manager Change Request</h2>
+
+<div id="successMessage" class="alert alert-success text-center" style="display:none;">
+    Reporting Manager Change Request submitted successfully!
+</div>
+
+<form id="reportingForm">
+   
+    <div class="form-group">
+        <label for="ShortProjectName">Short Project Name<span style="color:red">*</span></label>
+        <select id="ShortProjectName" name="ShortProjectName" class="form-control" required>
+            <option value="">-- Select Project --</option>
+            @foreach (var name in ViewBag.ShortProjectNames)
+            {
+                <option value="@name">@name</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Emp ID <span style="color:red">*</span></label>
+        <input type="text" id="EmpID" name="EmpID" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Emp Name <span style="color:red">*</span></label>
+        <input type="text" id="EmpName" name="EmpName" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Project ID <span style="color:red">*</span></label>
+        <input type="text" id="ProjectID" name="ProjectID" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Project Name <span style="color:red">*</span></label>
+        <input type="text" id="ProjectName" name="ProjectName" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Department ID <span style="color:red">*</span></label>
+        <input type="text" id="DepartmentID" name="DepartmentID" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Reporting Manager <span style="color:red">*</span></label>
+        <input type="text" id="ReportingManager" name="ReportingManager" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Start Date <span style="color:red">*</span></label>
+        <input type="date" id="StartDate" name="StartDate" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Requested By <span style="color:red">*</span></label>
+        <input type="email" id="RequestedBy" name="RequestedBy" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Requested Date <span style="color:red">*</span></label>
+        <input type="date" id="RequestedDate" name="RequestedDate" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Project Manager <span style="color:red">*</span></label>
+        <input type="text" id="ProjectManager" name="ProjectManager" class="form-control" required />
+    </div>
+
+    <div class="form-group row mt-3">
+        <div class="col-sm-12 text-end">
+            <button type="submit" class="btn btn-success me-2">Submit Request</button>
+            <button type="button" id="clearButton2" class="btn btn-secondary">Clear</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+
+
+    <script src="~/js/Reporting.js"></script>
+}

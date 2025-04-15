@@ -1,0 +1,133 @@
+﻿@model List<EmployeeBOApp.Models.TicketingTable>
+
+@{
+    var userEmail = User.Identity?.Name;
+    var userRole = User.IsInRole("GDO") ? "GDO" :
+                   User.IsInRole("GeneralManager") ? "GeneralManager" : "user";
+}
+
+<h2 class="mb-4">View Requests</h2>
+
+<div class="mb-4">
+    <label for="searchQuery" class="col-form-label">Search:</label>
+    <input type="text" id="searchQuery" class="form-control" placeholder="Search by Emp Name, Project Name, Status" onkeyup="liveSearch()" />
+</div>
+
+<!-- Container to update dynamically -->
+<div id="requestsTableContainer">
+    <table class="table table-bordered text-center requests-table">
+        <thead>
+            <tr>
+                <th>Emp ID</th>
+                <th>Emp Name</th>
+                <th>Request Type</th>
+                <th>Project Code</th>
+                <th>Project Name</th>
+                <th>PM</th>
+                <th>Status</th>
+                <th>Close</th>
+                <th>Delete</th>
+                <th>Reject</th>
+                <th>Approve</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in Model)
+            {
+                var emp = ticket.Emp;
+                var project = emp?.Project;
+                bool isInProgress = ticket.Status == "InProgress";
+                bool isOpen = ticket.Status == "Open";
+
+                <tr>
+                    <td>@emp?.EmpId</td>
+                    <td>@emp?.EmpName</td>
+                    <td>@ticket.RequestType</td>
+                    <td>@project?.ShortProjectName</td>
+                    <td>@project?.ProjectName</td>
+                    <td>@project?.Pm</td>
+                    <td>@ticket.Status</td>
+
+                    <!-- Close -->
+                    <td>
+                        @if (userRole == "GDO" && isInProgress)
+                        {
+                            <form asp-action="CloseRequest" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@ticket.TicketingId" />
+                                <button class="btn btn-success btn-sm">Close</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-disabled-close" disabled>Close</button>
+                        }
+                    </td>
+
+                    <!-- Delete -->
+                    <td>
+                        @if (userRole == "user" && isOpen && ticket.RequestedBy == userEmail)
+                        {
+                            <form asp-action="DeleteRequest" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@ticket.TicketingId" />
+                                <button class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-disabled-delete" disabled>Delete</button>
+                        }
+                    </td>
+
+                    <!-- Reject -->
+                    <td>
+                        @if (userRole == "GDO" && isInProgress)
+                        {
+                            <form asp-action="RejectRequest" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@ticket.TicketingId" />
+                                <button class="btn btn-warning btn-sm">Reject</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-disabled-reject" disabled>Reject</button>
+                        }
+                    </td>
+
+                    <!-- Approve -->
+                    <td>
+                        @if (userRole == "GDO" && isInProgress)
+                        {
+                            <form asp-action="ApproveRequest" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@ticket.TicketingId" />
+                                <button class="btn btn-primary btn-sm">Approve</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-disabled-approve" disabled>Approve</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function liveSearch() {
+            var query = $("#searchQuery").val();
+
+            $.ajax({
+                url: '@Url.Action("Index", "View")',
+                type: 'GET',
+                data: { searchQuery: query },
+                success: function (result) {
+                    var newHtml = $(result).find('#requestsTableContainer').html();
+                    $('#requestsTableContainer').html(newHtml);
+                }
+            });
+        }
+    </script>
+}

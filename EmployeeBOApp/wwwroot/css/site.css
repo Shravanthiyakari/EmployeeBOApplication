@@ -1,34 +1,200 @@
-.logout_button {
-    background-color: #7B2CBF; /* Medium Slate Blue (Matches the one in image) */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 8px;
-    cursor: pointer;
+/* Header Styles */
+.custom-navbar {
+    padding: 0;
+}
+
+.navbar-logo {
+    background-color: transparent;
+    padding: 0 1rem;
+}
+
+.navbar-actions {
+    background-color: white;
+    flex-grow: 1;
     display: flex;
+    justify-content: flex-end;
     align-items: center;
-    gap: 8px;
-    font-weight: bold;
-    transition: 0.3s;
+    padding: 0 1rem;
 }
 
-    .logout_button i {
-        font-size: 18px;
-    }
-
-    .logout_button:hover {
-        background-color: #5A1E91; /* Darker shade on hover */
-    }
-
-.logout-link {
-    font-weight: 500;
-    text-decoration: none;
-    font-size: 16px;
-    margin-right: 20px;
+.logout-link i {
+    margin-right: 5px;
 }
 
-    .logout-link:hover {
-        text-decoration: underline;
-        color: #ddd;
+/* Container for the table */
+.requests-table-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 10px auto;
+    overflow-x: auto;
+}
+
+/* Table Styling */
+.requests-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 13px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .requests-table thead th {
+        background-color: #007bff;
+        color: white;
+        padding: 6px 8px;
+        white-space: nowrap;
+        text-align: center;
+        vertical-align: middle;
     }
+
+    .requests-table tbody td {
+        padding: 6px 8px;
+        word-wrap: break-word;
+        white-space: normal;
+        text-align: center;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .requests-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Column Widths */
+    .requests-table th:nth-child(1),
+    .requests-table td:nth-child(1) {
+        width: 90px;
+    }
+
+    .requests-table th:nth-child(2),
+    .requests-table td:nth-child(2) {
+        width: 140px;
+    }
+
+    .requests-table th:nth-child(3),
+    .requests-table td:nth-child(3) {
+        width: 100px;
+    }
+
+    .requests-table th:nth-child(4),
+    .requests-table td:nth-child(4) {
+        width: 90px;
+    }
+
+    .requests-table th:nth-child(5),
+    .requests-table td:nth-child(5) {
+        width: 160px;
+    }
+
+    .requests-table th:nth-child(6),
+    .requests-table td:nth-child(6) {
+        width: 170px;
+    }
+
+    .requests-table th:nth-child(7),
+    .requests-table td:nth-child(7) {
+        width: 100px;
+    }
+
+    .requests-table th:nth-child(8),
+    .requests-table td:nth-child(8),
+    .requests-table th:nth-child(9),
+    .requests-table td:nth-child(9),
+    .requests-table th:nth-child(10),
+    .requests-table td:nth-child(10),
+    .requests-table th:nth-child(11),
+    .requests-table td:nth-child(11) {
+        width: 100px;
+    }
+
+    /* Ensure all buttons have same size and style */
+    .requests-table td button {
+        display: inline-block;
+        min-width: 80px;
+        height: 32px;
+        line-height: 24px;
+        padding: 4px 12px;
+        font-size: 13px;
+        font-weight: bold;
+        border-radius: 5px;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        box-sizing: border-box;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s ease-in-out;
+    }
+
+/* Active Buttons */
+.btn-close {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-reject {
+    background-color: #ffc107;
+    color: black;
+}
+
+.btn-approve {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Hover Effects */
+.btn-close:hover {
+    background-color: #218838;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+}
+
+.btn-reject:hover {
+    background-color: #e0a800;
+}
+
+.btn-approve:hover {
+    background-color: #0069d9;
+}
+
+/* Disabled Buttons */
+.btn-disabled-close {
+    background-color: darkgreen;
+    color: ghostwhite;
+    cursor: not-allowed;
+}
+
+.btn-disabled-delete {
+    background-color: red;
+    color: ghostwhite;
+    cursor: not-allowed;
+}
+
+.btn-disabled-reject {
+    background-color: orange;
+    color: black;
+    cursor: not-allowed;
+}
+
+.btn-disabled-approve {
+    background-color: #cce5ff;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Search Input */
+#searchQuery {
+    max-width: 400px;
+    margin-bottom: 10px;
+}
