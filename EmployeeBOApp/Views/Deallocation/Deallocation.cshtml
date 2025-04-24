@@ -4,9 +4,8 @@
 
 <h2>Deallocation Request Form</h2>
 
-<div id="successMessage" class="alert alert-success text-center" style="display:none;">
-    Request submitted successfully!
-</div>
+<div id="successMessage" class="alert alert-success text-center" style="display:none;"></div>
+<div id="errorMessage" class="alert alert-danger text-center" style="display:none;"></div>
 
 <form id="deallocationForm">
     <!-- Short Project Name -->
@@ -38,7 +37,7 @@
     <!-- End Date -->
     <div class="form-group">
         <label for="EndDate">End Date<span style="color:red">*</span></label>
-        <input type="date" name="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+        <input type="date" id="EndDate" name="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
 
     </div>
 

@@ -3,15 +3,31 @@
 @{
     var userEmail = User.Identity?.Name;
     var userRole = User.IsInRole("GDO") ? "GDO" :
-                   User.IsInRole("GeneralManager") ? "GeneralManager" : "user";
+                   User.IsInRole("DM") ? "DM" :
+                   User.IsInRole("PM") ? "PM" : "user";
+
+    int currentPage = ViewData["CurrentPage"] != null ? (int)ViewData["CurrentPage"] : 1;
+    int totalPages = ViewData["TotalPages"] != null ? (int)ViewData["TotalPages"] : 1;
+    string searchQuery = ViewData["SearchQuery"]?.ToString() ?? "";
 }
 
 <h2 class="mb-4">View Requests</h2>
 
-<div class="mb-4">
-    <label for="searchQuery" class="col-form-label">Search:</label>
-    <input type="text" id="searchQuery" class="form-control" placeholder="Search by Emp Name, Project Name, Status" onkeyup="liveSearch()" />
+<div class="mb-4 d-flex align-items-end justify-content-between">
+    <div class="flex-grow-1 me-2">
+        <label for="searchQuery" class="col-form-label">Search:</label>
+        <input type="text" id="searchQuery" class="form-control"
+               placeholder="Search by Emp Name, Project Name, Status, or Request Type"
+               value="@searchQuery" onkeyup="liveSearch()" />
+    </div>
+    <form asp-controller="View" asp-action="ExportToExcel" method="post" class="p-0 m-0 border-0 shadow-none bg-transparent">
+        <input type="hidden" name="searchQuery" value="@searchQuery" />
+        <button type="submit" class="btn btn-success mt-4">Export to Excel</button>
+    </form>
+
 </div>
+
+
 
 <!-- Container to update dynamically -->
 <div id="requestsTableContainer">
@@ -25,10 +41,10 @@
                 <th>Project Name</th>
                 <th>PM</th>
                 <th>Status</th>
-                <th>Close</th>
-                <th>Delete</th>
-                <th>Reject</th>
                 <th>Approve</th>
+                <th>Reject</th>
+                <th>Delete</th>
+                <th>Close</th>
             </tr>
         </thead>
         <tbody>
@@ -36,8 +52,8 @@
             {
                 var emp = ticket.Emp;
                 var project = emp?.Project;
-                bool isInProgress = ticket.Status == "InProgress";
-                bool isOpen = ticket.Status == "Open";
+                bool isInProgress = string.Equals(ticket.Status, "InProgress", StringComparison.OrdinalIgnoreCase);
+                bool isOpen = string.Equals(ticket.Status, "Open", StringComparison.OrdinalIgnoreCase);
 
                 <tr>
                     <td>@emp?.EmpId</td>
@@ -48,7 +64,52 @@
                     <td>@project?.Pm</td>
                     <td>@ticket.Status</td>
 
-                    <!-- Close -->
+                    <!-- Approve (Only GM when Open) -->
+                    <td>
+                        @if ((userRole == "DM") && isOpen)
+                        {
+                            <form asp-action="ApproveRequest" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@ticket.TicketingId" />
+                                <button type="submit" class="btn-approve">Approve</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn-disabled-approve" disabled>Approve</button>
+                        }
+                    </td>
+
+                    <!-- Reject (GM when Open, GDO when InProgress) -->
+                    <td>
+                        @if ((userRole == "DM" && isOpen) || (userRole == "GDO" && isInProgress))
+                        {
+                            <form asp-action="RejectRequest" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@ticket.TicketingId" />
+                                <button class="btn-reject">Reject</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-disabled-reject" disabled>Reject</button>
+                        }
+                    </td>
+
+                    <!-- Delete (Only PM when Open) -->
+                    <td>
+                        @if (userRole.Contains("PM", StringComparison.OrdinalIgnoreCase) && string.Equals(ticket.Status, "Open", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <form asp-action="DeleteRequest" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@ticket.TicketingId" />
+                                <button class="btn-delete">Delete</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-disabled-delete" disabled>Delete</button>
+                        }
+                    </td>
+
+                    <!-- Close (Only GDO when InProgress) -->
                     <td>
                         @if (userRole == "GDO" && isInProgress)
                         {
@@ -59,58 +120,36 @@
                         }
                         else
                         {
-                            <button class="btn btn-sm btn-disabled-close" disabled>Close</button>
-                        }
-                    </td>
-
-                    <!-- Delete -->
-                    <td>
-                        @if (userRole == "user" && isOpen && ticket.RequestedBy == userEmail)
-                        {
-                            <form asp-action="DeleteRequest" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@ticket.TicketingId" />
-                                <button class="btn btn-danger btn-sm">Delete</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <button class="btn btn-sm btn-disabled-delete" disabled>Delete</button>
-                        }
-                    </td>
-
-                    <!-- Reject -->
-                    <td>
-                        @if (userRole == "GDO" && isInProgress)
-                        {
-                            <form asp-action="RejectRequest" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@ticket.TicketingId" />
-                                <button class="btn btn-warning btn-sm">Reject</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <button class="btn btn-sm btn-disabled-reject" disabled>Reject</button>
-                        }
-                    </td>
-
-                    <!-- Approve -->
-                    <td>
-                        @if (userRole == "GDO" && isInProgress)
-                        {
-                            <form asp-action="ApproveRequest" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@ticket.TicketingId" />
-                                <button class="btn btn-primary btn-sm">Approve</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <button class="btn btn-sm btn-disabled-approve" disabled>Approve</button>
+                            <button class="btn-disabled-close" disabled>Close</button>
                         }
                     </td>
                 </tr>
             }
         </tbody>
+
     </table>
+
+    <!-- Pagination -->
+    <div class="pagination d-flex justify-content-center mt-4">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, page = currentPage - 1 })">Previous</a>
+                </li>
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, page = i })">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, page = currentPage + 1 })">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 </div>
 
 @section Scripts {
@@ -122,10 +161,11 @@
             $.ajax({
                 url: '@Url.Action("Index", "View")',
                 type: 'GET',
-                data: { searchQuery: query },
+                data: { searchQuery: query, page: 1 },
                 success: function (result) {
                     var newHtml = $(result).find('#requestsTableContainer').html();
                     $('#requestsTableContainer').html(newHtml);
+                    $('.pagination').html($(result).find('.pagination').html());
                 }
             });
         }

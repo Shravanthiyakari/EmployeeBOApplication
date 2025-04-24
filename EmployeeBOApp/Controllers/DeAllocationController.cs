@@ -1,16 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using EmployeeBOApp.Models;
 using Microsoft.EntityFrameworkCore;
+using EmployeeBOApp.EmailsContent;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EmployeeBOApp.Controllers
 {
+    [Authorize]
     public class DeallocationController : Controller
     {
         private readonly EmployeeDatabaseContext _context;
+        private readonly IEmailService _emailService;
 
-        public DeallocationController(EmployeeDatabaseContext context)
+        public DeallocationController(EmployeeDatabaseContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -51,21 +60,96 @@ namespace EmployeeBOApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult SubmitDeallocation([FromBody] TicketingTable ticket)
+        public async Task<IActionResult> SubmitDeallocation([FromBody] TicketingTable ticket)
         {
+            // Step 1: Check if there is already an open allocation request
+            var existingRequest = await _context.TicketingTables
+                .Where(t => t.EmpId == ticket.EmpId &&
+                            t.RequestType == "Allocation" &&
+                            t.Status != "Closed")
+                .FirstOrDefaultAsync();
+
+            if (existingRequest != null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "An allocation request is already in progress for this employee. Please wait until it's closed."
+                });
+            }
             if (ticket == null || !ModelState.IsValid)
             {
                 return Json(new { success = false, message = "Invalid form data" });
             }
-            ticket.RequestType = "Deallocation";
-            ticket.EndDate = DateTime.Now;
-            ticket.RequestedDate = DateTime.Now;
 
+            var employee = await _context.EmployeeInformations.FirstOrDefaultAsync(e => e.EmpId == ticket.EmpId);
 
-            _context.TicketingTables.Add(ticket);
-            _context.SaveChanges();
+            if (employee == null)
+            {
+                return Json(new { success = false, message = "Employee not found." });
+            }
 
-            return Json(new { success = true, message = "Deallocation submitted successfully!" });
+            if (employee.Deallocation == true)
+            {
+                return Json(new { success = false, message = "Deallocation is already submitted." });
+            }
+
+            var projectInfo = await (from emp in _context.EmployeeInformations
+                                     join proj in _context.ProjectInformations
+                                         on emp.ProjectId equals proj.ProjectId
+                                     where emp.EmpId == ticket.EmpId
+                                     select new
+                                     {
+                                         DmEmail = proj.DmemailId,
+                                         proj.ProjectName
+                                     }).FirstOrDefaultAsync();
+
+            if (projectInfo == null)
+            {
+                return Json(new { success = false, message = "Project information not found." });
+            }
+
+            string dmEmail = projectInfo.DmEmail;
+            string projectName = projectInfo.ProjectName;
+
+            string subject = $"Deallocation Request - {projectName} - {ticket.EmpId} - {employee.EmpName}";
+
+            string finalBody = EmailContentforDeallocation.EmailContentForDM
+                .Replace("{EMP_ID}", ticket.EmpId)
+                .Replace("{EMP_NAME}", employee.EmpName)
+                .Replace("{PROJECT_CODE}", employee.ProjectId)
+                .Replace("{END_DATE}", ticket.EndDate?.ToString("dd-MM-yyyy"))
+
+                .Replace("{Request_Status}", "Submitted")
+                .Replace("{user_name}", User.Identity?.Name);
+
+            try
+            {
+                await _emailService.SendEmailAsync(
+                    toEmails: new List<string> { dmEmail },
+                    subject: subject,
+                    body: finalBody,
+                    isHtml: true,
+                    ccEmails: new List<string> { ticket.RequestedBy! }
+                );
+
+                ticket.Status = "Open";
+                ticket.RequestedDate = DateTime.Now;
+                ticket.RequestType = "Deallocation";
+
+                _context.TicketingTables.Add(ticket);
+
+                employee.Deallocation = true;
+                _context.EmployeeInformations.Update(employee);
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Deallocation submitted and email sent successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Deallocation saved, but email failed: {ex.Message}" });
+            }
         }
     }
 }

@@ -4,28 +4,13 @@
 }
 
 <h2>Assignment Request Form</h2>
-@if (!ViewData.ModelState.IsValid)
-{
-    <div id="ErrorMessage" class="alert alert-danger">
-        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-        {
-            <p>@error.ErrorMessage</p>
-        }
-    </div>
-}
+<div id="successMessage" class="alert alert-success text-center" style="display:none;"></div>
+<div id="errorMessage" class="alert alert-danger text-center" style="display:none;"></div>
 
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div id="successMessage" class="alert alert-success text-center">
-        @TempData["SuccessMessage"]
-    </div>
-}
-
-<form id="allocationForm" asp-action="SubmitRequest" method="post">
+<form id="allocationForm">
     <div class="form-group">
         <label>Short Project Name <span style="color:red;">*</span></label>
-        <select id="ShortProjectName" class="form-control" required>
+        <select id="ShortProjectName" name="ShortProjectName" class="form-control" required>
             <option value="">-- Select Project --</option>
             @foreach (var name in ViewBag.ShortProjectNames)
             {
@@ -36,7 +21,11 @@
 
     <div class="form-group">
         <label>Emp ID <span style="color:red;">*</span></label>
-        <input type="text" id="EmpID" name="EmpId" class="form-control" required />
+        <input type="text" id="EmpID" name="EmpId" class="form-control"
+               maxlength="8"
+               pattern="^P0\d{6}$"
+               title="Emp ID should start with 'P0' followed by 6 digits (e.g., PO123456)"
+               required />
     </div>
 
     <div class="form-group">
@@ -71,13 +60,13 @@
 
     <div class="form-group">
         <label>Start Date <span style="color:red;">*</span></label>
-        <input type="date" name="StartDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+        <input type="date" id="StartDate" name="StartDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
 
     </div>
 
     <div class="form-group">
         <label>End Date <span style="color:red;">*</span></label>
-        <input type="date" name="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+        <input type="date" id="EndDate" name="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
 
     </div>
 
@@ -93,6 +82,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
-    <script src="~/js/Allocation.js"></script>
+    <script src="@Url.Content("~/js/Allocation.js")"></script>
 }
-

@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using EmployeeBOApp.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EmployeeBOApp.Controllers
 {
+    [Authorize]
     public class ReportingController : Controller
     {
         private readonly EmployeeDatabaseContext _context;

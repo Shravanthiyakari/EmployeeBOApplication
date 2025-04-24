@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Centific</title>
 
-    <link rel="icon" type="image/png" href="/favicon.ico">
+    <link rel="icon" type="image/png" href="/favicon.ico" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/form.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/Header.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+    @RenderSection("Styles", required: false)
 </head>
 <body>
     <!-- Header -->
@@ -20,21 +22,24 @@
     <div class="container-fluid d-flex">
         <!-- Sidebar -->
         <div class="col-md-3 sidebar">
-            <ul class="nav flex-column">
+            <ul class="nav flex-column" role="navigation">
                 @if (User.IsInRole("PM") || User.IsInRole("DM"))
                 {
-                    <!-- PM and DM can see all tabs -->
                     <li class="nav-item">
-                        <a href="@Url.Action("Deallocation", "Deallocation")" class="nav-link text-primary">Deallocation</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="@Url.Action("Index", "Allocation")" class="nav-link text-primary">Allocation</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="@Url.Action("ReportingManagerChangeRequest", "Reporting")" class="nav-link text-primary">Reporting Management</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="@Url.Action("Index", "View")" class="nav-link text-primary">View Requests</a>
+                        <button class="btn btn-primary w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#gdoRequestMenu" aria-expanded="false" aria-controls="gdoRequestMenu">
+                            GDO Request <i class="fa fa-caret-down float-end"></i>
+                        </button>
+                        <div class="collapse mt-1" id="gdoRequestMenu" aria-expanded="false">
+                            <ul class="list-unstyled ps-3">
+                                @if (User.IsInRole("PM") || User.IsInRole("DM") || User.IsInRole("GDO"))
+                                {
+                                    <li><a href="@Url.Action("Index", "Allocation")" class="nav-link text-primary">Allocation</a></li>
+                                    <li><a href="@Url.Action("Deallocation", "Deallocation")" class="nav-link text-primary">Deallocation</a></li>
+                                    <li><a href="@Url.Action("ReportingManagerChangeRequest", "Reporting")" class="nav-link text-primary">Reporting Management</a></li>
+                                }
+                                <li><a href="@Url.Action("Index", "View")" class="nav-link text-primary">View Requests</a></li>
+                            </ul>
+                        </div>
                     </li>
                 }
                 else if (User.IsInRole("GDO"))
@@ -66,5 +71,8 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @RenderSection("Scripts", required: false)
+
+    <!-- Custom JavaScript -->
+    <script src="@Url.Content("~/js/layout.js")"></script>
 </body>
 </html>
