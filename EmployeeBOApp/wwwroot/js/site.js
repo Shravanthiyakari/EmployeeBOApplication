@@ -96,7 +96,7 @@
 
                     // Clear additional fields manually if necessary
                     $('#EmployeeID, #ProjectCode, #ProjectName, #RequestedBy, #ProjectManager, #DeliveryManager').val('');
-                    $('#EndDate').val(''); // Assuming EndDate is an input field for date
+                    $('#EndDate').val(''); 
 
                     // Display success message
                     $('#successMessage').text(res.message).fadeIn();

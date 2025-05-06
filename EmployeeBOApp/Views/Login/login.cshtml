@@ -14,7 +14,7 @@
             let isValid = true;
             let requiredFields = document.querySelectorAll(".required");
 
-            // Clear previous error messages
+           
             document.querySelectorAll(".validation-error").forEach(function (el) {
                 el.textContent = '';
             });
@@ -23,11 +23,11 @@
                 let errorElement = document.getElementById(field.name + "Error");
 
                 if (!field.value.trim()) {
-                    // Show validation error message below the field
+                    
                     errorElement.textContent = field.getAttribute("data-alert");
                     field.focus();
                     isValid = false;
-                    event.preventDefault();  // Prevent form submission
+                    event.preventDefault();  
                     return false;
                 }
             });

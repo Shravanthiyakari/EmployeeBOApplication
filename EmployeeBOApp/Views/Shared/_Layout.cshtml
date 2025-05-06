@@ -26,10 +26,16 @@
                 @if (User.IsInRole("PM") || User.IsInRole("DM"))
                 {
                     <li class="nav-item">
-                        <button class="btn btn-primary w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#gdoRequestMenu" aria-expanded="false" aria-controls="gdoRequestMenu">
-                            GDO Request <i class="fa fa-caret-down float-end"></i>
+                        <button class="btn btn-primary w-100 text-start d-flex justify-content-between align-items-center"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#gdoRequestMenu"
+                                aria-expanded="false"
+                                aria-controls="gdoRequestMenu">
+                            GDO Request
+                            <i class="fa fa-caret-down"></i>
                         </button>
-                        <div class="collapse mt-1" id="gdoRequestMenu" aria-expanded="false">
+                        <div class="collapse mt-1" id="gdoRequestMenu">
                             <ul class="list-unstyled ps-3">
                                 @if (User.IsInRole("PM") || User.IsInRole("DM") || User.IsInRole("GDO"))
                                 {
@@ -44,7 +50,6 @@
                 }
                 else if (User.IsInRole("GDO"))
                 {
-                    <!-- GDO can only see View Requests -->
                     <li class="nav-item">
                         <a href="@Url.Action("Index", "View")" class="nav-link text-primary">View Requests</a>
                     </li>
@@ -69,10 +74,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
+    <script src="~/js/layout.js" asp-append-version="true"></script> 
     @RenderSection("Scripts", required: false)
-
-    <!-- Custom JavaScript -->
-    <script src="@Url.Content("~/js/layout.js")"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@
     int currentPage = ViewData["CurrentPage"] != null ? (int)ViewData["CurrentPage"] : 1;
     int totalPages = ViewData["TotalPages"] != null ? (int)ViewData["TotalPages"] : 1;
     string searchQuery = ViewData["SearchQuery"]?.ToString() ?? "";
+    string requestType = ViewData["RequestType"]?.ToString() ?? "Select";
 }
 
 <h2 class="mb-4">View Requests</h2>
@@ -20,23 +21,31 @@
                placeholder="Search by Emp Name, Project Name, Status, or Request Type"
                value="@searchQuery" onkeyup="liveSearch()" />
     </div>
-    <form asp-controller="View" asp-action="ExportToExcel" method="post" class="p-0 m-0 border-0 shadow-none bg-transparent">
-        <input type="hidden" name="searchQuery" value="@searchQuery" />
+    <form asp-controller="View" asp-action="ExportToExcel" method="post" class="p-0 m-0 border-0 shadow-none bg-transparent" id="exportForm">
+        <input type="hidden" name="searchQuery" id="exportSearchQuery" value="@searchQuery" />
+        <input type="hidden" name="requestType" id="exportRequestType" value="@requestType" />
         <button type="submit" class="btn btn-success mt-4">Export to Excel</button>
     </form>
-
 </div>
 
-
-
-<!-- Container to update dynamically -->
 <div id="requestsTableContainer">
     <table class="table table-bordered text-center requests-table">
         <thead>
             <tr>
                 <th>Emp ID</th>
                 <th>Emp Name</th>
-                <th>Request Type</th>
+                <th>
+                    Request Type
+                    <select id="requestTypeHeader" class="form-select form-select-sm mt-1" onchange="liveSearch()">
+                        <option value="Select" selected="@(requestType == "Select")">All</option>
+                        <option value="Deallocation" selected="@(requestType == "Deallocation")">Deallocation</option>
+                        <option value="Allocation" selected="@(requestType == "Allocation")">Allocation</option>
+                        <option value="ReportingChange" selected="@(requestType == "ReportingChange")">ReportingChange</option>
+                        <option value="DepartmentChange" selected="@(requestType == "DepartmentChange")">DepartmentChange</option>
+                        <option value="ManagerChange" selected="@(requestType == "ManagerChange")">ManagerChange</option>
+                    </select>
+
+                </th>
                 <th>Project Code</th>
                 <th>Project Name</th>
                 <th>PM</th>
@@ -64,7 +73,7 @@
                     <td>@project?.Pm</td>
                     <td>@ticket.Status</td>
 
-                    <!-- Approve (Only GM when Open) -->
+                    <!-- Approve (Only DM when Open) -->
                     <td>
                         @if ((userRole == "DM") && isOpen)
                         {
@@ -79,7 +88,7 @@
                         }
                     </td>
 
-                    <!-- Reject (GM when Open, GDO when InProgress) -->
+                    <!-- Reject (DM when Open, GDO when InProgress) -->
                     <td>
                         @if ((userRole == "DM" && isOpen) || (userRole == "GDO" && isInProgress))
                         {
@@ -96,7 +105,7 @@
 
                     <!-- Delete (Only PM when Open) -->
                     <td>
-                        @if (userRole.Contains("PM", StringComparison.OrdinalIgnoreCase) && string.Equals(ticket.Status, "Open", StringComparison.OrdinalIgnoreCase))
+                        @if (userRole == "PM" && isOpen)
                         {
                             <form asp-action="DeleteRequest" method="post" class="d-inline">
                                 <input type="hidden" name="id" value="@ticket.TicketingId" />
@@ -126,7 +135,6 @@
                 </tr>
             }
         </tbody>
-
     </table>
 
     <!-- Pagination -->
@@ -134,18 +142,18 @@
         <nav>
             <ul class="pagination">
                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, page = currentPage - 1 })">Previous</a>
+                    <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, requestType = requestType, page = currentPage - 1 })">Previous</a>
                 </li>
 
                 @for (int i = 1; i <= totalPages; i++)
                 {
                     <li class="page-item @(i == currentPage ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, page = i })">@i</a>
+                        <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, requestType = requestType, page = i })">@i</a>
                     </li>
                 }
 
                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, page = currentPage + 1 })">Next</a>
+                    <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, requestType = requestType, page = currentPage + 1 })">Next</a>
                 </li>
             </ul>
         </nav>
@@ -157,11 +165,15 @@
     <script>
         function liveSearch() {
             var query = $("#searchQuery").val();
+            var type = $("#requestTypeHeader").val();
+
+            $("#exportSearchQuery").val(query);
+            $("#exportRequestType").val(type);
 
             $.ajax({
                 url: '@Url.Action("Index", "View")',
                 type: 'GET',
-                data: { searchQuery: query, page: 1 },
+                data: { searchQuery: query, requestType: type, page: 1 },
                 success: function (result) {
                     var newHtml = $(result).find('#requestsTableContainer').html();
                     $('#requestsTableContainer').html(newHtml);

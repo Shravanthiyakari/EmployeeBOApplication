@@ -2,17 +2,27 @@
     ViewData["Title"] = "Reporting Manager Change Request";
 }
 
-<h2>Department and Reporting Manager Change Request</h2>
+<h2>Change Request</h2>
 
-<div id="successMessage" class="alert alert-success text-center" style="display:none;">
-    Reporting Manager Change Request submitted successfully!
-</div>
+<div id="successMessage" class="alert alert-success text-center" style="display:none;"></div>
+<div id="errorMessage" class="alert alert-danger text-center" style="display:none;"></div>
 
 <form id="reportingForm">
-   
+    <!-- Request Type dropdown -->
+    <div class="form-group">
+        <label for="RequestType">Request Type <span style="color:red">*</span></label>
+        <select id="RequestType" name="RequestType" class="form-control select2" required>
+            <option value="">-- Select Request Type --</option>
+            <option value="ReportingChange">Reporting Change</option>
+            <option value="ManagerChange">Manager Change</option>
+            <option value="DepartmentChange">Department Change</option>
+        </select>
+    </div>
+
+    <!-- Short Project Name dropdown -->
     <div class="form-group">
         <label for="ShortProjectName">Short Project Name<span style="color:red">*</span></label>
-        <select id="ShortProjectName" name="ShortProjectName" class="form-control" required>
+        <select id="ShortProjectName" name="ShortProjectName" class="form-control select2" required>
             <option value="">-- Select Project --</option>
             @foreach (var name in ViewBag.ShortProjectNames)
             {
@@ -21,55 +31,56 @@
         </select>
     </div>
 
-    <div class="form-group">
-        <label>Emp ID <span style="color:red">*</span></label>
-        <input type="text" id="EmpID" name="EmpID" class="form-control" required />
-    </div>
-
+    <!-- Employee Name dropdown -->
     <div class="form-group">
         <label>Emp Name <span style="color:red">*</span></label>
-        <input type="text" id="EmpName" name="EmpName" class="form-control" required />
+        <select id="EmpName" name="EmpName" class="form-control select2" required>
+            <option value="">-- Select Employee --</option>
+        </select>
     </div>
 
+    <!-- Employee ID (readonly) -->
+    <div class="form-group">
+        <label>Emp ID <span style="color:red">*</span></label>
+        <input type="text" id="EmpID" name="EmpID" class="form-control" required readonly />
+    </div>
+
+    <!-- Project ID (readonly) -->
     <div class="form-group">
         <label>Project ID <span style="color:red">*</span></label>
-        <input type="text" id="ProjectID" name="ProjectID" class="form-control" required />
+        <input type="text" id="ProjectID" name="ProjectID" class="form-control" required readonly />
     </div>
 
+    <!-- Project Name (readonly) -->
     <div class="form-group">
         <label>Project Name <span style="color:red">*</span></label>
-        <input type="text" id="ProjectName" name="ProjectName" class="form-control" required />
+        <input type="text" id="ProjectName" name="ProjectName" class="form-control" required readonly />
     </div>
 
+    <!-- Department ID (readonly) -->
     <div class="form-group">
         <label>Department ID <span style="color:red">*</span></label>
-        <input type="text" id="DepartmentID" name="DepartmentID" class="form-control" required />
+        <input type="text" id="DepartmentID" name="DepartmentID" class="form-control" required readonly />
     </div>
 
+    <!-- Reporting Manager (readonly) -->
     <div class="form-group">
         <label>Reporting Manager <span style="color:red">*</span></label>
-        <input type="text" id="ReportingManager" name="ReportingManager" class="form-control" required />
+        <input type="text" id="ReportingManager" name="ReportingManager" class="form-control" required readonly />
     </div>
 
-    <div class="form-group">
-        <label>Start Date <span style="color:red">*</span></label>
-        <input type="date" id="StartDate" name="StartDate" class="form-control" required />
-    </div>
-
-    <div class="form-group">
-        <label>Requested By <span style="color:red">*</span></label>
-        <input type="email" id="RequestedBy" name="RequestedBy" class="form-control" required />
-    </div>
-
-    <div class="form-group">
-        <label>Requested Date <span style="color:red">*</span></label>
-        <input type="date" id="RequestedDate" name="RequestedDate" class="form-control" required />
-    </div>
-
+    <!-- Project Manager (readonly) -->
     <div class="form-group">
         <label>Project Manager <span style="color:red">*</span></label>
-        <input type="text" id="ProjectManager" name="ProjectManager" class="form-control" required />
+        <input type="text" id="ProjectManager" name="ProjectManager" class="form-control" required readonly />
     </div>
+
+    <div class="form-group">
+        <label>Start Date <span style="color:red;">*</span></label>
+        <input type="date" id="StartDate" name="StartDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+
+    </div>
+  
 
     <div class="form-group row mt-3">
         <div class="col-sm-12 text-end">
@@ -83,6 +94,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
+    <script src="@Url.Content("~/js/Reporting.js")"></script>
 
-    <script src="~/js/Reporting.js"></script>
+
 }

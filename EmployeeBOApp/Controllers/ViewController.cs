@@ -4,6 +4,7 @@ using EmployeeBOApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Security.Claims;
 
 namespace EmployeeBOApp.Controllers
@@ -21,7 +22,7 @@ namespace EmployeeBOApp.Controllers
             _emailService = emailService;
         }
 
-        public async Task<IActionResult> Index(string searchQuery)
+        public async Task<IActionResult> Index(string searchQuery, string requestType, int page = 1)
         {
             var userEmail = User.Identity?.Name;
             var userRoles = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
@@ -40,15 +41,18 @@ namespace EmployeeBOApp.Controllers
             {
                 ticketsQuery = ticketsQuery.Where(t => t.Emp!.Project!.DmemailId == userEmail);
             }
-            else
+            else if (userRoles.Contains("PM"))
             {
-                if (userRoles.Contains("PM"))
-                {
-                    ticketsQuery = ticketsQuery.Where(t => t.RequestedBy == userEmail);
-                }
+                ticketsQuery = ticketsQuery.Where(t => t.RequestedBy == userEmail);
             }
 
-            // Search across all relevant fields
+            // Apply RequestType filtering (if not "Select")
+            if (!string.IsNullOrEmpty(requestType) && requestType != "Select")
+            {
+                ticketsQuery = ticketsQuery.Where(t => t.RequestType == requestType);
+            }
+
+            // Apply search query
             if (!string.IsNullOrEmpty(searchQuery))
             {
                 ticketsQuery = ticketsQuery.Where(t =>
@@ -62,15 +66,27 @@ namespace EmployeeBOApp.Controllers
                 );
             }
 
-            var result = await ticketsQuery.ToListAsync();
+            // Paging logic
+            int pageSize = 10;
+            int totalItems = await ticketsQuery.CountAsync();
+            var pagedResult = await ticketsQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
             ViewData["SearchQuery"] = searchQuery;
-            return View(result);
+            ViewData["RequestType"] = requestType;
+            ViewData["CurrentPage"] = page;
+            ViewData["TotalPages"] = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            return View(pagedResult);
         }
+
         
         [HttpPost]
-        public IActionResult ExportToExcel(string searchQuery)
+        public IActionResult ExportToExcel(string searchQuery, string requestType)
         {
-            // Retrieve data based on searchQuery and role-based filtering
+            // Retrieve data based on searchQuery, requestType, and role-based filtering
             var userEmail = User.Identity?.Name;
             var userRoles = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
 
@@ -79,7 +95,8 @@ namespace EmployeeBOApp.Controllers
                 .ThenInclude(e => e!.Project)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(searchQuery))
+            // Apply search query filtering if provided
+            if (!string.IsNullOrEmpty(searchQuery) && searchQuery != "All")
             {
                 ticketsQuery = ticketsQuery.Where(t =>
                     t.Emp!.EmpId.Contains(searchQuery) ||
@@ -90,6 +107,12 @@ namespace EmployeeBOApp.Controllers
                     t.Emp.Project.Pm!.Contains(searchQuery) ||
                     t.Status!.Contains(searchQuery)
                 );
+            }
+
+            // Apply requestType filtering if not "All"
+            if (!string.IsNullOrEmpty(requestType) && requestType != "Select" && requestType != "All")
+            {
+                ticketsQuery = ticketsQuery.Where(t => t.RequestType == requestType);
             }
 
             var result = ticketsQuery.ToList();
@@ -107,7 +130,6 @@ namespace EmployeeBOApp.Controllers
                 worksheet.Cell(1, 5).Value = "Project Name";
                 worksheet.Cell(1, 6).Value = "PM";
                 worksheet.Cell(1, 7).Value = "Status";
-
 
                 // Populate rows with data
                 for (int i = 0; i < result.Count; i++)
@@ -135,7 +157,7 @@ namespace EmployeeBOApp.Controllers
             }
         }
 
-        
+
         [HttpPost]
         public async Task<IActionResult> CloseRequest(int id)
         {
@@ -152,32 +174,66 @@ namespace EmployeeBOApp.Controllers
                 var employee = await _context.EmployeeInformations.FirstOrDefaultAsync(e => e.EmpId == ticket.EmpId);
 
                 var subject = $" {ticket.RequestType} Ticket Status Details - {ticket.EmpId} - {employee?.EmpName} - ";
+                var projectInfo = await (from emp in _context.EmployeeInformations
+                                         join proj in _context.ProjectInformations
+                                             on emp.ProjectId equals proj.ProjectId
+                                         where emp.EmpId == ticket.EmpId
+                                         select new
+                                         {
+                                             DmEmail = proj.DmemailId,
+                                             proj.ProjectName,
+                                             departmentId = proj.DepartmentID,
+                                             proj.Dm,
 
-                string finalBody = EmailContentforDeallocation.EmailContentForDM
+                                         }).FirstOrDefaultAsync();
+
+                string dmEmail = projectInfo!.DmEmail;
+                string projectName = projectInfo.ProjectName;
+                string finalBody;
+                if (ticket.RequestType == "ReportingChange" || ticket!.RequestType == "ManagerChange" || ticket.RequestType == "DepartmentChange")
+                {
+                    // 2. Replace placeholders with real values
+                    finalBody = EmailContentforRDRequestChange.EmailContentForRDC
+                        .Replace("{EMP_ID}", ticket.EmpId)
+                        .Replace("{EMP_NAME}", employee?.EmpName)
+                        .Replace("{PROJECT_CODE}", employee?.ProjectId)
+                        .Replace("{PROJECT_Name}", projectName)
+                        .Replace("{DEPARTMENT_ID}", projectInfo.departmentId)
+                        .Replace("{ReportingManager}", projectInfo.Dm)
+                        .Replace("{START_DATE}", ticket.StartDate?.ToString("dd-MM-yyyy"))
+                        .Replace("{Request_Status}", "Closed")
+                        .Replace("{user_name}", User.Identity?.Name);
+                }
+                else
+                {
+
+                     finalBody = EmailContentforDeallocation.EmailContentForDM
                 .Replace("{EMP_ID}", ticket.EmpId)
-                .Replace("{EMP_NAME}", employee?.EmpName)
-                .Replace("{PROJECT_CODE}", employee?.ProjectId)
-                .Replace("{END_DATE}", ticket.EndDate.ToString())
-                .Replace("{Request_Status}", "Closed")
-                .Replace("{user_name}", User.Identity?.Name);
-
-                try
-                {
-
-                    await _emailService.SendEmailAsync(
-                                      toEmails: gdoEmailIds,
-                                      subject: subject,
-                                      body: finalBody,
-                                      isHtml: true,
-                                      ccEmails: new List<string> { User.Identity?.Name, ticket.RequestedBy }
-                                      );
+                    .Replace("{EMP_NAME}", employee?.EmpName)
+                    .Replace("{PROJECT_CODE}", employee?.ProjectId)
+                    .Replace("{END_DATE}", ticket.EndDate.ToString())
+                    .Replace("{Request_Status}", "Closed")
+                    .Replace("{user_name}", User.Identity?.Name);
                 }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = $"Approval of the ticket is failed, {ex.Message}" });
+
+                    try
+                    {
+
+                        await _emailService.SendEmailAsync(
+                                          toEmails: gdoEmailIds,
+                                          subject: subject,
+                                          body: finalBody,
+                                          isHtml: true,
+                                          ccEmails: new List<string> { projectInfo.DmEmail, ticket.RequestedBy }
+                                          );
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = $"Approval of the ticket is failed, {ex.Message}" });
+                    }
+                    return RedirectToAction("Index");
                 }
-                return RedirectToAction("Index");
-            }
+            
             else
             {
                 // Add a return statement for the case where the approval criteria are not met
@@ -204,14 +260,47 @@ namespace EmployeeBOApp.Controllers
                 var employee = await _context.EmployeeInformations.FirstOrDefaultAsync(e => e.EmpId == ticket.EmpId);
 
                 var subject = $" {ticket.RequestType} Ticket Status Details - {ticket.EmpId} - {employee?.EmpName} - ";
+                var projectInfo = await (from emp in _context.EmployeeInformations
+                                         join proj in _context.ProjectInformations
+                                             on emp.ProjectId equals proj.ProjectId
+                                         where emp.EmpId == ticket.EmpId
+                                         select new
+                                         {
+                                             DmEmail = proj.DmemailId,
+                                             proj.ProjectName,
+                                             departmentId = proj.DepartmentID,
+                                             proj.Dm,
 
-                string finalBody = EmailContentforDeallocation.EmailContentForDM
-                .Replace("{EMP_ID}", ticket.EmpId)
-                .Replace("{EMP_NAME}", employee?.EmpName)
-                .Replace("{PROJECT_CODE}", employee?.ProjectId)
-                .Replace("{END_DATE}", ticket.EndDate.ToString())
-                .Replace("{Request_Status}", "Approved")
-                .Replace("{user_name}", User.Identity?.Name);
+                                         }).FirstOrDefaultAsync();
+
+                string dmEmail = projectInfo!.DmEmail;
+                string projectName = projectInfo.ProjectName;
+                string finalBody;
+                if (ticket.RequestType == "ReportingChange" || ticket!.RequestType == "ManagerChange" || ticket.RequestType == "DepartmentChange")
+                {
+                    finalBody = EmailContentforRDRequestChange.EmailContentForRDC
+
+                        .Replace("{EMP_ID}", ticket.EmpId)
+                        .Replace("{EMP_NAME}", employee?.EmpName)
+                        .Replace("{PROJECT_CODE}", employee?.ProjectId)
+                        .Replace("{PROJECT_Name}", projectName)
+                        .Replace("{DEPARTMENT_ID}", projectInfo.departmentId)
+                        .Replace("{ReportingManager}", projectInfo.Dm)
+                        .Replace("{START_DATE}", ticket.StartDate?.ToString("dd-MM-yyyy"))
+                        .Replace("{Request_Status}", "Approved")
+                        .Replace("{user_name}", User.Identity?.Name);
+                }
+                else
+                {
+
+                    finalBody = EmailContentforDeallocation.EmailContentForDM
+                    .Replace("{EMP_ID}", ticket.EmpId)
+                   .Replace("{EMP_NAME}", employee?.EmpName)
+                   .Replace("{PROJECT_CODE}", employee?.ProjectId)
+                   .Replace("{END_DATE}", ticket.EndDate.ToString())
+                   .Replace("{Request_Status}", "Approved")
+                   .Replace("{user_name}", User.Identity?.Name);
+                }
 
                 try
                 {
@@ -259,14 +348,46 @@ namespace EmployeeBOApp.Controllers
                     .ToListAsync();
 
                 var subject = $" {ticket.RequestType} Ticket Status Details - {ticket.EmpId} - {employee?.EmpName} - ";
+                var projectInfo = await (from emp in _context.EmployeeInformations
+                                         join proj in _context.ProjectInformations
+                                             on emp.ProjectId equals proj.ProjectId
+                                         where emp.EmpId == ticket.EmpId
+                                         select new
+                                         {
+                                             DmEmail = proj.DmemailId,
+                                             proj.ProjectName,
+                                             departmentId = proj.DepartmentID,
+                                             proj.Dm,
 
-                string finalBody = EmailContentforDeallocation.EmailContentForDM
+                                         }).FirstOrDefaultAsync();
+
+                string dmEmail = projectInfo!.DmEmail;
+                string projectName = projectInfo.ProjectName;
+                string finalBody;
+                if (ticket.RequestType == "ReportingChange" || ticket!.RequestType == "ManagerChange"|| ticket.RequestType == "DepartmentChange")
+                {
+                    finalBody = EmailContentforRDRequestChange.EmailContentForRDC
+
+                        .Replace("{EMP_ID}", ticket.EmpId)
+                        .Replace("{EMP_NAME}", employee?.EmpName)
+                        .Replace("{PROJECT_CODE}", employee?.ProjectId)
+                        .Replace("{PROJECT_Name}", projectName)
+                        .Replace("{DEPARTMENT_ID}", projectInfo.departmentId)
+                        .Replace("{ReportingManager}", projectInfo.Dm)
+                        .Replace("{START_DATE}", ticket.StartDate?.ToString("dd-MM-yyyy"))
+                        .Replace("{Request_Status}", "Deleted")
+                        .Replace("{user_name}", User.Identity?.Name);
+                }
+                else
+                {
+                 finalBody = EmailContentforDeallocation.EmailContentForDM
                 .Replace("{EMP_ID}", ticket.EmpId)
                 .Replace("{EMP_NAME}", employee?.EmpName)
                 .Replace("{PROJECT_CODE}", employee?.ProjectId)
                 .Replace("{END_DATE}", ticket.EndDate.ToString())
                 .Replace("{Request_Status}", "Deleted")
                 .Replace("{user_name}", User.Identity?.Name);
+                }
 
                 try
                 {
@@ -311,16 +432,47 @@ namespace EmployeeBOApp.Controllers
                                .Select(login => login.EmailId)
                                .ToListAsync();
                 var employee = await _context.EmployeeInformations.FirstOrDefaultAsync(e => e.EmpId == ticket.EmpId);
+                var projectInfo = await (from emp in _context.EmployeeInformations
+                                         join proj in _context.ProjectInformations
+                                             on emp.ProjectId equals proj.ProjectId
+                                         where emp.EmpId == ticket.EmpId
+                                         select new
+                                         {
+                                             DmEmail = proj.DmemailId,
+                                             proj.ProjectName,
+                                             departmentId = proj.DepartmentID,
+                                             proj.Dm,
 
+                                         }).FirstOrDefaultAsync();
+
+                string dmEmail = projectInfo!.DmEmail;
+                string projectName = projectInfo.ProjectName;
                 var subject = $" {ticket.RequestType} Ticket Status Details - {ticket.EmpId} - {employee?.EmpName} - ";
+                string finalBody;
+                if (ticket.RequestType == "ReportingChange" || ticket!.RequestType == "ManagerChange" || ticket.RequestType == "DepartmentChange")
+                {
+                    finalBody = EmailContentforRDRequestChange.EmailContentForRDC
 
-                string finalBody = EmailContentforDeallocation.EmailContentForDM
-                .Replace("{EMP_ID}", ticket.EmpId)
-                .Replace("{EMP_NAME}", employee?.EmpName)
-                .Replace("{PROJECT_CODE}", employee?.ProjectId)
-                .Replace("{END_DATE}", ticket.EndDate.ToString())
-                .Replace("{Request_Status}", "Rejected")
-                .Replace("{user_name}", User.Identity?.Name);
+                        .Replace("{EMP_ID}", ticket.EmpId)
+                        .Replace("{EMP_NAME}", employee?.EmpName)
+                        .Replace("{PROJECT_CODE}", employee?.ProjectId)
+                        .Replace("{PROJECT_Name}", projectName)
+                        .Replace("{DEPARTMENT_ID}", projectInfo.departmentId)
+                        .Replace("{ReportingManager}", projectInfo.Dm)
+                        .Replace("{START_DATE}", ticket.StartDate?.ToString("dd-MM-yyyy"))
+                        .Replace("{Request_Status}", "Rejected")
+                        .Replace("{user_name}", User.Identity?.Name);
+                }
+                else
+                {
+                    finalBody = EmailContentforDeallocation.EmailContentForDM
+                   .Replace("{EMP_ID}", ticket.EmpId)
+                   .Replace("{EMP_NAME}", employee?.EmpName)
+                   .Replace("{PROJECT_CODE}", employee?.ProjectId)
+                   .Replace("{END_DATE}", ticket.EndDate.ToString())
+                   .Replace("{Request_Status}", "Rejected")
+                   .Replace("{user_name}", User.Identity?.Name);
+                }
 
                 try
                 {
@@ -341,8 +493,8 @@ namespace EmployeeBOApp.Controllers
             }
             else
             {
-                // Add a return statement for the case where the approval criteria are not met
-                return BadRequest("Invalid request for approval."); // Or NotFound(), RedirectToAction(), etc.
+                
+                return BadRequest("Invalid request for approval."); 
             }
         }
 

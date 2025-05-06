@@ -7,6 +7,8 @@ public partial class ProjectInformation
 {
     public string ProjectId { get; set; } = null!;
 
+    public string DepartmentID { get; set; } = null!;
+
     public string ProjectName { get; set; } = null!;
 
     public string? ShortProjectName { get; set; }

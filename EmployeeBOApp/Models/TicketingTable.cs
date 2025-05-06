@@ -9,7 +9,7 @@ public partial class TicketingTable
     public int TicketingId { get; set; }
 
     public string? EmpId { get; set; }
-
+    public string? DepartmentID { get; set; }
     public DateTime? EndDate { get; set; }
 
     [NotMapped]

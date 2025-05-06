@@ -23,8 +23,8 @@
         <label>Emp ID <span style="color:red;">*</span></label>
         <input type="text" id="EmpID" name="EmpId" class="form-control"
                maxlength="8"
-               pattern="^P0\d{6}$"
-               title="Emp ID should start with 'P0' followed by 6 digits (e.g., PO123456)"
+               pattern="^P\d{7}$"
+               title="Emp ID should start with 'P' followed by 7 digits (e.g., PO123456)"
                required />
     </div>
 
@@ -61,13 +61,12 @@
     <div class="form-group">
         <label>Start Date <span style="color:red;">*</span></label>
         <input type="date" id="StartDate" name="StartDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
-
     </div>
 
     <div class="form-group">
         <label>End Date <span style="color:red;">*</span></label>
         <input type="date" id="EndDate" name="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
-
+        <span id="endDateError" style="color:red; display:none;">End Date should be greater than Start Date.</span>
     </div>
 
     <div class="form-group row mt-3">

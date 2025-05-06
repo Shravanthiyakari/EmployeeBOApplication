@@ -53,6 +53,9 @@ namespace EmployeeBOApp.Models
                 entity.Property(e => e.ProjectId)
                     .HasMaxLength(100)
                     .HasColumnName("ProjectID");
+                entity.Property(e => e.DepartmentID)
+                   .HasMaxLength(100)
+                   .HasColumnName("DepartmentID");
                 entity.Property(e => e.Dm)
                     .HasMaxLength(100)
                     .HasColumnName("DM");
