@@ -22,7 +22,7 @@ namespace EmployeeBOApp.EmailServices
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName),
+                    From = new MailAddress(_emailSettings.SenderEmail!, _emailSettings.SenderName),
                     Subject = subject,
                     Body = body,
                     IsBodyHtml = true,

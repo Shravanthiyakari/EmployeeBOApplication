@@ -1,11 +1,13 @@
-﻿using EmployeeBOApp.Models;
+﻿using EmployeeBOApp.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace EmployeeBOApp.Controllers
 {
+  
     public class LoginController : Controller
     {
         private readonly EmployeeDatabaseContext _context;

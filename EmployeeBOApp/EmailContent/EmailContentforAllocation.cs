@@ -2,7 +2,7 @@
 {
     public static class EmailContentforAllocation
     {
-        public static string EmailContentForDM =
+        public static string EmailContentForAM =
              @"
           <!DOCTYPE html>
           <html>
@@ -57,7 +57,8 @@
   <td>{END_DATE}</td>
 </tr>
 </table>
-<a class='action-link' href='https://localhost:7168/Login/Login'>Click here to take decision</a>
+
+{ACTION_LINK}
 
 <p>Thanks.</p>
 <p class='footer'>This is an automated generated email. Please do not reply to this email.</p>
