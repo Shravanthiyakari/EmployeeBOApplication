@@ -29,7 +29,7 @@ namespace EmployeeBOApp.Controllers
         {
             var user = _context.Logins.FirstOrDefault(u => u.EmailId == emailId);
 
-            if (user != null && (user.Role == "PM" || user.Role == "DM" || user.Role == "GDO"))
+            if (user != null && (user.Role == "PM" || user.Role == "DM" || user.Role == "GDO" || user.Role == "HR"))
             {
                 // Store session info
                 HttpContext.Session.SetString("EmailId", user.EmailId);

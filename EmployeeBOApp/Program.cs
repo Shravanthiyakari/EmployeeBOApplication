@@ -63,7 +63,6 @@ using EmployeeBOApp.Repositories; // Assuming your implementation class is here
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using EmployeeBOApp.Repositories.Implementations;
-using EmployeeBOApp.BussinessLayer.Implementations;
 using EmployeeBOApp.BussinessLayer.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
