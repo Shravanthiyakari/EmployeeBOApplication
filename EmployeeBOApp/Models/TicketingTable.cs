@@ -35,4 +35,7 @@ public partial class TicketingTable
     public string? Status { get; set; }
 
     public virtual EmployeeInformation? Emp { get; set; }
+
+    [NotMapped]
+    public string? BgvId { get; set; } // ✨ NotMapped ensures it's not in DB
 }

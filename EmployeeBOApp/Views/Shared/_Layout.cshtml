@@ -37,7 +37,7 @@
                         </button>
                         <div class="collapse mt-1" id="gdoRequestMenu">
                             <ul class="list-unstyled ps-3">
-                                @if (User.IsInRole("PM") || User.IsInRole("DM") || User.IsInRole("GDO"))
+                                @if (User.IsInRole("PM") || User.IsInRole("DM"))
                                 {
                                     <li><a href="@Url.Action("Index", "Allocation")" class="nav-link text-primary">Allocation</a></li>
                                     <li><a href="@Url.Action("Deallocation", "Deallocation")" class="nav-link text-primary">Deallocation</a></li>
@@ -46,6 +46,26 @@
                                 <li><a href="@Url.Action("Index", "View")" class="nav-link text-primary">View Requests</a></li>
                             </ul>
                         </div>
+                        @if (User.IsInRole("PM"))
+                        {
+                            <button class="btn btn-primary w-100 text-start d-flex justify-content-between align-items-center mt-2"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#BGVRequestMenu"
+                                    aria-expanded="false"
+                                    aria-controls="BGVRequestMenu">
+                                BGV Request
+                                <i class="fa fa-caret-down"></i>
+                            </button>
+                            <div class="collapse mt-1" id="BGVRequestMenu">
+                                <ul class="list-unstyled ps-3">
+                                    <li><a href="@Url.Action("Index", "BGV")" class="nav-link text-primary">BGV View Request</a></li>
+                                    <li><a href="@Url.Action("BGVIndex", "BGVView")" class="nav-link text-primary">BGV Request</a></li>
+
+
+                                </ul>
+                            </div>
+                        }
                     </li>
                 }
                 else if (User.IsInRole("GDO"))
@@ -54,10 +74,10 @@
                         <a href="@Url.Action("Index", "View")" class="nav-link text-primary">View Requests</a>
                     </li>
                 }
-                else  if (User.IsInRole("HR"))
+                else if (User.IsInRole("HR"))
                 {
                     <li class="nav-item">
-                        <a href="@Url.Action("Index", "BGV")" class="nav-link text-primary">BGV Request</a>
+                        <a href="@Url.Action("BGVIndex", "BGVView")" class="nav-link text-primary">BGV Request</a>
                     </li>
                 }
             </ul>
@@ -80,7 +100,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/layout.js" asp-append-version="true"></script> 
+    <script src="~/js/layout.js" asp-append-version="true"></script>
+    <script src="~/js/BGV.js" asp-append-version="true"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>
