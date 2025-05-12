@@ -1,153 +1,102 @@
-﻿@model List<EmployeeBOApp.Models.TicketingTable>
-
+﻿@model IEnumerable<TicketingTable>
 @{
-    var userEmail = User.Identity?.Name;
-    var userRole = User.IsInRole("GDO") ? "GDO" :
-                   User.IsInRole("HR") ? "HR" :
-                   User.IsInRole("DM") ? "DM" :
-                   User.IsInRole("PM") ? "PM" : "user";
-
-    int currentPage = ViewData["CurrentPage"] != null ? (int)ViewData["CurrentPage"] : 1;
-    int totalPages = ViewData["TotalPages"] != null ? (int)ViewData["TotalPages"] : 1;
-    string searchQuery = ViewData["SearchQuery"]?.ToString() ?? "";
-    string requestType = ViewData["RequestType"]?.ToString() ?? "Select";
+    ViewData["Title"] = "BGV Tickets";
+    var userRole = User.IsInRole("HR") ? "HR" : (User.IsInRole("PM") ? "PM" : "");
 }
-
-<h2 class="mb-4">BGV View Requests</h2>
-
+<h2 class="mb-4">View Requests</h2>
 <div class="mb-4 d-flex align-items-end justify-content-between">
     <div class="flex-grow-1 me-2">
         <label for="searchQuery" class="col-form-label">Search:</label>
         <input type="text" id="searchQuery" class="form-control"
-               placeholder="Search by Emp Name, EmpId, BGVID"
-               value="@searchQuery" onkeyup="liveSearch()" />
+               placeholder="Search by Emp Id, Emp Name, BGV Id"
+               value="@ViewData["SearchQuery"]" onkeyup="liveSearch()" />
     </div>
-    <form asp-controller="BGVView" asp-action="ExportToExcel" method="post" class="p-0 m-0 border-0 shadow-none bg-transparent" id="exportForm">
-        <input type="hidden" name="searchQuery" id="exportSearchQuery" value="@searchQuery" />
-        <input type="hidden" name="requestType" id="exportRequestType" value="@requestType" />
+    <form asp-controller="View" asp-action="ExportToExcel" method="post" class="p-0 m-0 border-0 shadow-none bg-transparent" id="exportForm">
+        <input type="hidden" name="searchQuery" id="exportSearchQuery" value="@ViewData["SearchQuery"]" />
         <button type="submit" class="btn btn-success mt-4">Export to Excel</button>
     </form>
 </div>
 
 <div id="requestsTableContainer">
-    <table class="table table-bordered text-center requests-table">
+    <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Emp ID</th>
                 <th>Emp Name</th>
-                <th>BGV ID</th>
+                @if (userRole == "HR")
+                {
+                    <th>BGV ID</th>
+                }
                 <th>Edit</th>
                 <th>Submit</th>
-                <th>Delete</th>
+                @if (userRole == "PM")
+                {
+                    <th>Delete</th>
+                }
             </tr>
         </thead>
         <tbody>
             @foreach (var ticket in Model)
             {
                 var emp = ticket.Emp;
-                var project = emp?.Project;
-                bool isInProgress = string.Equals(ticket.Status, "InProgress", StringComparison.OrdinalIgnoreCase);
-                bool isOpen = string.Equals(ticket.Status, "Open", StringComparison.OrdinalIgnoreCase);
                 string rowId = $"row_{ticket.TicketingId}";
-                string bgvInputId = $"bgvInput_{ticket.TicketingId}";
+                string formId = $"form_{ticket.TicketingId}";
+                string editBtnId = $"editBtn_{ticket.TicketingId}";
                 string submitBtnId = $"submitBtn_{ticket.TicketingId}";
+                string deleteBtnId = $"deleteBtn_{ticket.TicketingId}";
+                string bgvInputId = $"bgvInput_{ticket.TicketingId}";
+                string empIdInputId = $"empIdInput_{ticket.TicketingId}";
+                string empNameInputId = $"empNameInput_{ticket.TicketingId}";
 
                 <tr id="@rowId">
-                    <td>@emp?.EmpId</td>
-                    <td>@emp?.EmpName</td>
-
+                    <form id="@formId" asp-action="EditTicket" method="post">
+                        <input type="hidden" name="id" value="@ticket.TicketingId" />
                     <td>
-                        <input type="text"
-                               id="@bgvInputId"
-                               name="BGVId"
-                               value="@ticket.BgvId"
-                               class="form-control text-center"
-                        @(userRole == "HR" ? "" : "disabled") />
+                        <input type="text" id="@empIdInputId" name="empId" value="@emp?.EmpId" class="form-control text-center" readonly />
                     </td>
-
                     <td>
-                        <button type="button"
-                                class="btn btn-primary"
-                                onclick="enableEdit('@ticket.TicketingId')"
-                        @(userRole == "HR" ? "" : "disabled")>
-                            Edit
-                        </button>
+                        <input type="text" id="@empNameInputId" name="empName" value="@emp?.EmpName" class="form-control text-center" readonly />
                     </td>
-
-                    @if (userRole == "HR" && isInProgress)
-                    {
-                        <form asp-action="SubmitTicket" method="post" class="d-inline">
-                            <input type="hidden" name="id" value="@ticket.TicketingId" />
-                            <button type="submit" class="btn btn-success" id="@submitBtnId">Submit</button>
-                        </form>
-                    }
-                    else if (userRole == "HR")
-                    {
-                        <form asp-action="SubmitTicket" method="post" class="d-inline">
-                            <input type="hidden" name="id" value="@ticket.TicketingId" />
-                            <button type="submit" class="btn btn-secondary" id="@submitBtnId" disabled>Submit</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <button class="btn btn-secondary" disabled>Submit</button>
-                    }
-
-                    <td>
-                        @if (userRole == "PM" && isOpen)
+                        @if (userRole == "HR")
                         {
+                        <td>
+                            <input type="text" id="@bgvInputId" name="bgvId" value="@ticket.BgvId" class="form-control text-center" readonly />
+                        </td>
+                        }
+                    <td>
+                        <button type="button" id="@editBtnId" class="btn btn-primary" onclick="enableEdit('@ticket.TicketingId', '@userRole')">Edit</button>
+                    </td>
+                    <td>
+                        <button type="submit" id="@submitBtnId" class="btn btn-success" disabled>Submit</button>
+                    </td>
+                        @if (userRole == "PM")
+                        {
+                        <td>
                             <form asp-action="DeleteRequest" method="post" class="d-inline">
                                 <input type="hidden" name="id" value="@ticket.TicketingId" />
-                                <button class="btn btn-danger">Delete</button>
+                                <button id="@deleteBtnId" class="btn btn-danger" disabled>Delete</button>
                             </form>
+                        </td>
                         }
-                        else
-                        {
-                            <button class="btn btn-secondary" disabled>Delete</button>
-                        }
-                    </td>
+                    </form>
                 </tr>
             }
         </tbody>
     </table>
-
-    <!-- Pagination -->
-    <div class="pagination d-flex justify-content-center mt-4">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, requestType = requestType, page = currentPage - 1 })">Previous</a>
-                </li>
-
-                @for (int i = 1; i <= totalPages; i++)
-                {
-                    <li class="page-item @(i == currentPage ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, requestType = requestType, page = i })">@i</a>
-                    </li>
-                }
-
-                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <a class="page-link" href="@Url.Action("Index", new { searchQuery = searchQuery, requestType = requestType, page = currentPage + 1 })">Next</a>
-                </li>
-            </ul>
-        </nav>
-    </div>
 </div>
 
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@section Scripts
+{
     <script>
         function liveSearch() {
             var query = $("#searchQuery").val();
-            var type = $("#requestTypeHeader").val();
 
             $("#exportSearchQuery").val(query);
-            $("#exportRequestType").val(type);
 
             $.ajax({
                 url: '@Url.Action("BGVIndex", "BGVView")',
                 type: 'GET',
-                data: { searchQuery: query, requestType: type, page: 1 },
+                data: { searchQuery: query, page: 1 },
                 success: function (result) {
                     var newHtml = $(result).find('#requestsTableContainer').html();
                     $('#requestsTableContainer').html(newHtml);
