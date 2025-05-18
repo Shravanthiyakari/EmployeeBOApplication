@@ -5,14 +5,20 @@ using EmployeeBOApp.Data;
 using Microsoft.AspNetCore.Authorization;
 using ClosedXML.Excel;
 using System.Security.Claims;
+using EmployeeBOApp.EmailContent;
+using EmployeeBOApp;
+using EmployeeBOApp.EmailServices;
 
 public class BGVViewController : Controller
 {
     private readonly EmployeeDatabaseContext _context;
+    private readonly IEmailService _emailService;
 
-    public BGVViewController(EmployeeDatabaseContext context)
+
+    public BGVViewController(EmployeeDatabaseContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     [Authorize]
@@ -50,50 +56,79 @@ public class BGVViewController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "PM,HR")]
-    public async Task<IActionResult> EditTicket(int id, string bgvId, string empId, string empName)
+    [Authorize(Roles = "HR")]
+    public async Task<IActionResult> SubmitTicket(int id, string bgvId, string empId, string empName)
     {
         var ticket = await _context.TicketingTables
                                    .Include(t => t.Emp)
                                    .FirstOrDefaultAsync(t => t.TicketingId == id);
 
         if (ticket != null)
-        {
-            if (User.IsInRole("PM"))
-            {
-                if (ticket.Emp != null)
-                {
-                    ticket.Emp.EmpId = empId;
-                    ticket.Emp.EmpName = empName;
-                }
-            }
-
-            if (User.IsInRole("HR"))
-            {
+        {          
                 ticket.BgvId = bgvId;
-                ticket.Status = "InProgress";
-            }
+                ticket.Status = "Closed";
+                ticket.EmpId = empId;
+            ticket.EmpName = empName;
+            ticket.ApprovedBy = User.Identity?.Name;
+            ticket.ApprovedDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
         }
+        var  pm = ticket!.RequestedBy;
+        string ccEmails = User.Identity?.Name ?? "";
 
-        return RedirectToAction("BGVIndex");
-    }
+        var DmName = await _context.ProjectInformations
+            .Where(p => p.PmemailId == pm)
+            .Select(p => p.DmemailId)
+            .FirstOrDefaultAsync();
 
-    [HttpPost]
-    [Authorize(Roles = "HR")]
-    public async Task<IActionResult> SubmitTicket(int id)
-    {
-        var ticket = await _context.TicketingTables.FirstOrDefaultAsync(t => t.TicketingId == id);
+      //  string actionLink = "<a class='action-link' href='https://localhost:7168/Login/Login'>Click here to take decision</a>";
+        string subject = $"BGV ID Request completed for - {ticket!.EmpName} - {ticket!.EmpId}";
 
-        if (ticket != null)
+        string finalBody = EmailContentForBGVID.EmailContentBGVID
+            .Replace("{EMP_ID}", ticket.EmpId)
+            .Replace("{EMP_NAME}", ticket.EmpName)
+            .Replace("{BGV_ID}", ticket.BgvId)
+            .Replace("{HR_NAME}", "HR-Team");
+
+
+        try
         {
-            ticket.Status = "Closed";
-            await _context.SaveChangesAsync();
+            await _emailService.SendEmailAsync(
+                new List<string> { pm, DmName }, // Replace with actual recipient(s)
+                subject,
+                finalBody,
+                true,
+                ccEmails: new List<string> { ticket.ApprovedBy! }
+
+            );
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = $"BGV details saved, but email failed: {ex.Message}";
+            return RedirectToAction("BGVIndex");
         }
 
+        TempData["Message"] = "BGV details saved and email sent successfully.";
         return RedirectToAction("BGVIndex");
     }
+    //return RedirectToAction("BGVIndex");
+    // }
+
+    /* [HttpPost]
+     [Authorize(Roles = "HR")]
+     public async Task<IActionResult> SubmitTicket(int id)
+     {
+         var ticket = await _context.TicketingTables.FirstOrDefaultAsync(t => t.TicketingId == id);
+
+         if (ticket != null)
+         {
+             ticket.Status = "Closed";
+             await _context.SaveChangesAsync();
+         }
+
+         return RedirectToAction("BGVIndex");
+     }*/
 
     [HttpPost]
     [Authorize(Roles = "PM")]
@@ -107,8 +142,8 @@ public class BGVViewController : Controller
         {
             _context.TicketingTables.Remove(ticket);
             await _context.SaveChangesAsync();
-        }
 
+        }
         return RedirectToAction("BGVIndex");
     }
 

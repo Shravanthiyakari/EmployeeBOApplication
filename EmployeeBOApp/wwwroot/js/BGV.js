@@ -1,20 +1,22 @@
-﻿    function enableEdit(ticketId) {
-        var bgvInput = document.getElementById('bgvInput_' + ticketId);
+﻿function enableEdit(ticketId, role) {
+    var bgvInput = document.getElementById('bgvInput_' + ticketId);
     var submitButton = document.getElementById('submitBtn_' + ticketId);
 
-    // Enable the BGV ID input field and submit button
-    if (bgvInput) {
-        bgvInput.removeAttribute('disabled');
-        }
+    if (role === 'HR' && bgvInput) {
+        bgvInput.removeAttribute('readonly'); // ✅ This is the correct attribute
+    }
+
     if (submitButton) {
         submitButton.removeAttribute('disabled');
-    submitButton.classList.remove('btn-secondary');
-    submitButton.classList.add('btn-success');
-        }
+        submitButton.classList.remove('btn-secondary');
+        submitButton.classList.add('btn-success');
+    }
+}
+
 
     // Optional: Send update to server to mark as InProgress and save initial BGV ID
     $.ajax({
-        url: '/BGVView/EditTicket',
+        url: '/BGVView/SubmitTicket',
     type: 'POST',
     data: {
         id: ticketId,
@@ -27,4 +29,3 @@
         alert("An error occurred while updating the ticket.");
             }
         });
-    }

@@ -49,7 +49,7 @@
                 string empNameInputId = $"empNameInput_{ticket.TicketingId}";
 
                 <tr id="@rowId">
-                    <form id="@formId" asp-action="EditTicket" method="post">
+                    <form id="@formId" asp-action="SubmitTicket" method="post">
                         <input type="hidden" name="id" value="@ticket.TicketingId" />
                     <td>
                         <input type="text" id="@empIdInputId" name="empId" value="@emp?.EmpId" class="form-control text-center" readonly />
@@ -67,7 +67,7 @@
                         <button type="button" id="@editBtnId" class="btn btn-primary" onclick="enableEdit('@ticket.TicketingId', '@userRole')">Edit</button>
                     </td>
                     <td>
-                        <button type="submit" id="@submitBtnId" class="btn btn-success" disabled>Submit</button>
+                        <button type="submit" id="@submitBtnId" class="btn btn-secondary" disabled>Submit</button>
                     </td>
                         @if (userRole == "PM")
                         {
