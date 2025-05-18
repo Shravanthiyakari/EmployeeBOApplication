@@ -3,7 +3,9 @@
     ViewData["Title"] = "BGV Tickets";
     var userRole = User.IsInRole("HR") ? "HR" : (User.IsInRole("PM") ? "PM" : "");
 }
+
 <h2 class="mb-4">View Requests</h2>
+
 <div class="mb-4 d-flex align-items-end justify-content-between">
     <div class="flex-grow-1 me-2">
         <label for="searchQuery" class="col-form-label">Search:</label>
@@ -11,7 +13,8 @@
                placeholder="Search by Emp Id, Emp Name, BGV Id"
                value="@ViewData["SearchQuery"]" onkeyup="liveSearch()" />
     </div>
-    <form asp-controller="View" asp-action="ExportToExcel" method="post" class="p-0 m-0 border-0 shadow-none bg-transparent" id="exportForm">
+    <form asp-controller="BGVView" asp-action="ExportToExcel" method="post" class="p-0 m-0 border-0 shadow-none bg-transparent" id="exportForm">
+        @Html.AntiForgeryToken()
         <input type="hidden" name="searchQuery" id="exportSearchQuery" value="@ViewData["SearchQuery"]" />
         <button type="submit" class="btn btn-success mt-4">Export to Excel</button>
     </form>
@@ -26,11 +29,8 @@
                 @if (userRole == "HR")
                 {
                     <th>BGV ID</th>
-                }
-                <th>Edit</th>
-                <th>Submit</th>
-                @if (userRole == "PM")
-                {
+                    <th>Edit</th>
+                    <th>Submit</th>
                     <th>Delete</th>
                 }
             </tr>
@@ -49,7 +49,8 @@
                 string empNameInputId = $"empNameInput_{ticket.TicketingId}";
 
                 <tr id="@rowId">
-                    <form id="@formId" asp-action="SubmitTicket" method="post">
+                    <form id="@formId" asp-controller="BGVView" asp-action="SubmitTicket" method="post">
+                        @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@ticket.TicketingId" />
                     <td>
                         <input type="text" id="@empIdInputId" name="empId" value="@emp?.EmpId" class="form-control text-center" readonly />
@@ -57,25 +58,20 @@
                     <td>
                         <input type="text" id="@empNameInputId" name="empName" value="@emp?.EmpName" class="form-control text-center" readonly />
                     </td>
+
                         @if (userRole == "HR")
                         {
                         <td>
-                            <input type="text" id="@bgvInputId" name="bgvId" value="@ticket.BgvId" class="form-control text-center" readonly />
+                            <input type="text" id="@bgvInputId" name="bgvId" value="@emp.BGVID" class="form-control text-center" readonly />
                         </td>
-                        }
-                    <td>
-                        <button type="button" id="@editBtnId" class="btn btn-primary" onclick="enableEdit('@ticket.TicketingId', '@userRole')">Edit</button>
-                    </td>
-                    <td>
-                        <button type="submit" id="@submitBtnId" class="btn btn-secondary" disabled>Submit</button>
-                    </td>
-                        @if (userRole == "PM")
-                        {
                         <td>
-                            <form asp-action="DeleteRequest" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@ticket.TicketingId" />
-                                <button id="@deleteBtnId" class="btn btn-danger" disabled>Delete</button>
-                            </form>
+                            <button type="button" id="@editBtnId" class="btn btn-primary" onclick="enableEdit('@ticket.TicketingId')">Edit</button>
+                        </td>
+                        <td>
+                            <button type="submit" id="@submitBtnId" class="btn btn-success" disabled>Submit</button>
+                        </td>
+                        <td>
+                            <button type="button" id="@deleteBtnId" class="btn btn-danger" disabled onclick="deleteRequest('@ticket.TicketingId')">Delete</button>
                         </td>
                         }
                     </form>
@@ -90,7 +86,6 @@
     <script>
         function liveSearch() {
             var query = $("#searchQuery").val();
-
             $("#exportSearchQuery").val(query);
 
             $.ajax({
@@ -103,6 +98,37 @@
                     $('.pagination').html($(result).find('.pagination').html());
                 }
             });
+        }
+
+        function enableEdit(ticketId) {
+            // Enable editing only for BGV ID field; EmpId and EmpName readonly usually
+            $('#bgvInput_' + ticketId).prop('readonly', false);
+
+            // Enable submit and delete buttons
+            $('#submitBtn_' + ticketId).prop('disabled', false);
+            $('#deleteBtn_' + ticketId).prop('disabled', false);
+
+            // Disable edit button to prevent multiple clicks
+            $('#editBtn_' + ticketId).prop('disabled', true);
+        }
+
+        function deleteRequest(ticketId) {
+            if (confirm("Are you sure you want to delete this request?")) {
+                $.ajax({
+                    url: '@Url.Action("DeleteRequest", "BGVView")',
+                    type: 'POST',
+                    data: {
+                        id: ticketId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
+                    },
+                    success: function () {
+                        $('#row_' + ticketId).remove();
+                    },
+                    error: function () {
+                        alert("Failed to delete request. Please try again.");
+                    }
+                });
+            }
         }
     </script>
 }

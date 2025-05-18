@@ -1,19 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EmployeeBOApp.Data;
-
 using Microsoft.AspNetCore.Authorization;
 using ClosedXML.Excel;
 using System.Security.Claims;
 using EmployeeBOApp.EmailContent;
-using EmployeeBOApp;
 using EmployeeBOApp.EmailServices;
+using EmployeeBOApp;
+using EmployeeBOApp.Models;
 
+[Authorize]
 public class BGVViewController : Controller
 {
     private readonly EmployeeDatabaseContext _context;
     private readonly IEmailService _emailService;
-
 
     public BGVViewController(EmployeeDatabaseContext context, IEmailService emailService)
     {
@@ -35,7 +35,7 @@ public class BGVViewController : Controller
             ticketsQuery = ticketsQuery.Where(t =>
                 t.Emp.EmpName.Contains(searchQuery) ||
                 t.Emp.EmpId.Contains(searchQuery) ||
-                t.BgvId.Contains(searchQuery));
+                t.Emp.BGVID.Contains(searchQuery));
         }
 
         var totalItems = await ticketsQuery.CountAsync();
@@ -64,17 +64,25 @@ public class BGVViewController : Controller
                                    .FirstOrDefaultAsync(t => t.TicketingId == id);
 
         if (ticket != null)
-        {          
-                ticket.BgvId = bgvId;
-                ticket.Status = "Closed";
-                ticket.EmpId = empId;
-            ticket.EmpName = empName;
+        {
+            // Update EmployeeInformation instead of TicketingTable
+            var employee = await _context.EmployeeInformations
+                                         .FirstOrDefaultAsync(e => e.EmpId == empId && e.EmpName == empName);
+
+            if (employee != null)
+            {
+                employee.BGVID = bgvId;
+            }
+
+            // Update ticket only for status/approval
+            ticket.Status = "Closed";
             ticket.ApprovedBy = User.Identity?.Name;
             ticket.ApprovedDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
         }
-        var  pm = ticket!.RequestedBy;
+
+        var pm = ticket!.RequestedBy;
         string ccEmails = User.Identity?.Name ?? "";
 
         var DmName = await _context.ProjectInformations
@@ -82,25 +90,22 @@ public class BGVViewController : Controller
             .Select(p => p.DmemailId)
             .FirstOrDefaultAsync();
 
-      //  string actionLink = "<a class='action-link' href='https://localhost:7168/Login/Login'>Click here to take decision</a>";
-        string subject = $"BGV ID Request completed for - {ticket!.EmpName} - {ticket!.EmpId}";
+        string subject = $"BGV ID Request completed for - {empName} - {empId}";
 
         string finalBody = EmailContentForBGVID.EmailContentBGVID
-            .Replace("{EMP_ID}", ticket.EmpId)
-            .Replace("{EMP_NAME}", ticket.EmpName)
-            .Replace("{BGV_ID}", ticket.BgvId)
+            .Replace("{EMP_ID}", empId)
+            .Replace("{EMP_NAME}", empName)
+            .Replace("{BGV_ID}", bgvId)
             .Replace("{HR_NAME}", "HR-Team");
-
 
         try
         {
             await _emailService.SendEmailAsync(
-                new List<string> { pm, DmName }, // Replace with actual recipient(s)
+                new List<string> { pm, DmName },
                 subject,
                 finalBody,
                 true,
                 ccEmails: new List<string> { ticket.ApprovedBy! }
-
             );
         }
         catch (Exception ex)
@@ -112,23 +117,6 @@ public class BGVViewController : Controller
         TempData["Message"] = "BGV details saved and email sent successfully.";
         return RedirectToAction("BGVIndex");
     }
-    //return RedirectToAction("BGVIndex");
-    // }
-
-    /* [HttpPost]
-     [Authorize(Roles = "HR")]
-     public async Task<IActionResult> SubmitTicket(int id)
-     {
-         var ticket = await _context.TicketingTables.FirstOrDefaultAsync(t => t.TicketingId == id);
-
-         if (ticket != null)
-         {
-             ticket.Status = "Closed";
-             await _context.SaveChangesAsync();
-         }
-
-         return RedirectToAction("BGVIndex");
-     }*/
 
     [HttpPost]
     [Authorize(Roles = "PM")]
@@ -142,73 +130,57 @@ public class BGVViewController : Controller
         {
             _context.TicketingTables.Remove(ticket);
             await _context.SaveChangesAsync();
-
         }
+
         return RedirectToAction("BGVIndex");
     }
 
-    //[HttpPost]
-    //public async Task<IActionResult> ExportToExcel(string searchQuery, string requestType)
-    //{
-
-    //    return RedirectToAction("BGVIndex", new { searchQuery, requestType });
-    //}
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult ExportToExcel(string searchQuery)
     {
-        // Retrieve data based on searchQuery and role-based filtering
-        var userEmail = User.Identity?.Name;
-        var userRoles = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
-
-        var ticketsQuery = _context.TicketingTables
+        // 1. Filter tickets based on searchQuery
+        var filteredTickets = _context.TicketingTables
             .Include(t => t.Emp)
-            .ThenInclude(e => e!.Project)
-            .AsQueryable();
+            .Where(t => t.RequestType == "BGV" &&
+             (string.IsNullOrEmpty(searchQuery) ||
+                     t.Emp!.EmpId.Contains(searchQuery) ||
+                     t.Emp!.EmpName.Contains(searchQuery) ||
+                     t.Emp.BGVID!.Contains(searchQuery)))
+        .ToList();
 
-        if (!string.IsNullOrEmpty(searchQuery))
-        {
-            ticketsQuery = ticketsQuery.Where(t =>
-                t.Emp!.EmpId.Contains(searchQuery) ||
-                t.Emp.EmpName.Contains(searchQuery)
-            );
-        }
-
-        var result = ticketsQuery.ToList();
-
-        // Create an Excel file using ClosedXML
+        // 2. Generate Excel file from filteredTickets (using ClosedXML)
         using (var workbook = new XLWorkbook())
         {
-            var worksheet = workbook.Worksheets.Add("Requests");
+            var worksheet = workbook.Worksheets.Add("BGV Tickets");
 
-            // Define headers
+            // Add headers
             worksheet.Cell(1, 1).Value = "Emp ID";
             worksheet.Cell(1, 2).Value = "Emp Name";
-            worksheet.Cell(1, 3).Value = "BgvId";
-            worksheet.Cell(1, 3).Value = "Status";
+            worksheet.Cell(1, 3).Value = "BGV ID";
+            worksheet.Cell(1, 4).Value = "Status";
 
-
-
-            // Populate rows with data
-            for (int i = 0; i < result.Count; i++)
+            int row = 2;
+            foreach (var ticket in filteredTickets)
             {
-                var ticket = result[i];
-                var emp = ticket.Emp;
-                var project = emp?.Project;
-
-                worksheet.Cell(i + 2, 1).Value = emp?.EmpId;
-                worksheet.Cell(i + 2, 2).Value = emp?.EmpName;
-                worksheet.Cell(i + 2, 3).Value = ticket.BgvId;
-                worksheet.Cell(i + 2, 7).Value = ticket.Status;
+                worksheet.Cell(row, 1).Value = ticket.Emp?.EmpId ?? "";
+                worksheet.Cell(row, 2).Value = ticket.Emp?.EmpName ?? "";
+                worksheet.Cell(row, 3).Value = ticket.Emp?.BGVID ?? "";
+                worksheet.Cell(row, 4).Value = ticket.Status ?? "";
+                row++;
             }
 
-            // Set the content type and file name for the response
             using (var stream = new MemoryStream())
             {
                 workbook.SaveAs(stream);
-                var fileName = "BGVViewRequests.xlsx";
-                return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                var content = stream.ToArray();
+
+                return File(content,
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "BGV_Tickets.xlsx");
             }
         }
     }
 
 }
+

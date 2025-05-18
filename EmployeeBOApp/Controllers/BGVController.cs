@@ -2,9 +2,11 @@
 using EmployeeBOApp.Data;
 using EmployeeBOApp.EmailContent;
 using EmployeeBOApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+[Authorize]
 public class BGVController : Controller
 {
     private readonly EmployeeDatabaseContext _context;
