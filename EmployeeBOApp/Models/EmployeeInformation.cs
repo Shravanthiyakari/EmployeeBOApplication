@@ -12,6 +12,7 @@ public partial class EmployeeInformation
     public bool Deallocation { get; set; }
 
     public string? ProjectId { get; set; }
+
     public string? BGVID { get; set; } 
 
     public virtual ProjectInformation? Project { get; set; }

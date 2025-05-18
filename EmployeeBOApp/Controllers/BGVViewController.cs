@@ -119,16 +119,32 @@ public class BGVViewController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "PM")]
+    [Authorize(Roles = "HR")]
     public async Task<IActionResult> DeleteRequest(int id)
     {
         var ticket = await _context.TicketingTables
-                                   .Include(t => t.Emp)
-                                   .FirstOrDefaultAsync(t => t.TicketingId == id);
+                              .Include(t => t.Emp)
+                              .FirstOrDefaultAsync(t => t.TicketingId == id);
 
-        if (ticket != null)
+        if (ticket != null && ticket.Emp != null)
         {
+            // Step 1: Get EmpId from the ticket
+            var empId = ticket.Emp.EmpId;
+
+            // Step 2: Find matching employee in EmployeeInformation table
+            var employee = await _context.EmployeeInformations
+                                         .FirstOrDefaultAsync(e => e.EmpId == empId);
+
+            // Step 3: If found, delete from EmployeeInformation
+            if (employee != null)
+            {
+                _context.EmployeeInformations.Remove(employee);
+            }
+
+            // Step 4: Delete from TicketingTable
             _context.TicketingTables.Remove(ticket);
+
+            // Save changes for both deletions
             await _context.SaveChangesAsync();
         }
 
