@@ -37,10 +37,20 @@
           <body>
 <div class='container'>
 <p>Dear Team,</p>
-<p>A Background Verification (BGV) ID request has been completed for the following employee: </p>
-<p><strong>Full Name:</strong> {EMP_NAME}</p>
-<p><strong>Employee ID:</strong> {EMP_ID}</p>
-<p><strong>BGV ID:</strong> {BGV_ID}</p>
+<p>A Background Verification (BGV) ID request has been {Status} for the following employee: </p>
+<table class='table'>
+<tr>
+  <th>Full Name</th>
+  <th>Employee ID</th>
+  <th>BGV ID</th>
+
+</tr>
+<tr>
+  <td>{EMP_NAME}</td>
+  <td>{EMP_ID}</td>
+  <td>{BGV_ID}</td>
+</tr>
+</table>
 
 <p class='footer'>This is an automated generated email. Please do not reply to this email.</p>
 

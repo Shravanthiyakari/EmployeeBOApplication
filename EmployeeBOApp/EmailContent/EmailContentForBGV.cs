@@ -38,8 +38,17 @@
 <div class='container'>
 <p>Dear HR Team,</p>
 <p>A Background Verification (BGV) request has been initiated for the following employee: </p>
-<p><strong>Full Name:</strong> {EMP_NAME}</p>
-<p><strong>Employee ID:</strong> {EMP_ID}</p>
+
+<table class='table'>
+<tr>
+  <th>Full Name</th>
+  <th>Employee ID</th>
+</tr>
+<tr>
+  <td>{EMP_NAME}</td>
+  <td>{EMP_ID}</td>
+</tr>
+</table>
 <p>Please proceed with the necessary steps for background verification.</p>
 
 {ACTION_LINK}
