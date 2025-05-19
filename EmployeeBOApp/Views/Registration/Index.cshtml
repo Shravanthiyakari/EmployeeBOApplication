@@ -1,0 +1,92 @@
+﻿@model EmployeeBOApp.Models.Login
+@{
+    Layout = null;
+}
+
+<link rel="stylesheet" href="~/css/Register.css">
+
+<style>
+    .required-label::after {
+        content: " *";
+        color: red;
+        font-weight: bold;
+    }
+
+    .validation-error {
+        color: red;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("form").addEventListener("submit", function (event) {
+            let isValid = true;
+            let requiredFields = document.querySelectorAll(".required");
+
+            // Clear previous error messages
+            document.querySelectorAll(".validation-error").forEach(function (el) {
+                el.textContent = '';
+            });
+
+            requiredFields.forEach(function (field) {
+                let errorElement = document.getElementById(field.name + "Error");
+
+                if (!field.value.trim()) {
+                    // Show validation error message below the field
+                    errorElement.textContent = field.getAttribute("data-alert");
+                    field.focus();
+                    isValid = false;
+                    event.preventDefault();  // Prevent form submission
+                    return false;
+                }
+            });
+
+            return isValid;
+        });
+    });
+</script>
+
+@using (Html.BeginForm("Register", "HomeLogin", FormMethod.Post))
+{
+    <h2>Registration</h2>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Username, new { @class = "control-label required-label" })
+        @Html.TextBoxFor(m => m.Username, new { @class = "form-control required", placeholder = "Enter Name", data_alert = "Name is required!" })
+        <div class="validation-error" id="NameError"></div>
+        @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.EmailId, new { @class = "control-label required-label" })
+        @Html.TextBoxFor(m => m.EmailId, new { @class = "form-control required", placeholder = "Enter Email", data_alert = "EmailId is required!" })
+        <div class="validation-error" id="EmailIdError"></div>
+        @Html.ValidationMessageFor(m => m.EmailId, "", new { @class = "text-danger" })
+    </div>
+
+    <!-- Role Radio Buttons -->
+    <div class="form-group">
+        <label class="control-label required-label">Role</label>
+        <div>
+            @foreach (var role in new[] { "HR", "PM", "DM", "Admin" })
+            {
+                <label style="margin-right: 15px;">
+                    <input type="radio" name="Role" value="@role" class="required" data-alert="Role is required!" /> @role
+                </label>
+            }
+        </div>
+        <div class="validation-error" id="RoleError"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Register</button>
+
+    <p class="register" style="text-align: left; margin-top: 10px;">
+        Already have an account?
+        <a href="@Url.Action("Login", "HomeLogin")"
+           style="color: #007bff; text-decoration: none; font-size: 14px; font-weight: bold;">
+            Login
+        </a>
+    </p>
+}

@@ -1,0 +1,122 @@
+﻿/* General Reset */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f7fc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Container Styles */
+form {
+    width: 100%;
+    max-width: 500px;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+}
+
+/* Form Title */
+h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #333333;
+    text-align: center;
+}
+
+/* Form Group Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+    .form-group label {
+        font-size: 14px;
+        font-weight: bold;
+        color: #555555;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .form-group .form-control {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+
+        .form-group .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+
+.text-danger {
+    font-size: 12px;
+    color: #ff0000;
+    margin-top: 5px;
+}
+
+/* Submit Button */
+.btn-primary {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+/* Register Link */
+p.register {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #555555;
+}
+
+    p.register a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        p.register a:hover {
+            text-decoration: underline;
+        }
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    form {
+        padding: 20px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    .form-group label {
+        font-size: 12px;
+    }
+
+    .form-group .form-control {
+        font-size: 13px;
+    }
+
+    .btn-primary {
+        font-size: 14px;
+    }
+}
