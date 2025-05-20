@@ -11,7 +11,7 @@ namespace EmployeeBOApp.Models
         public string EmailId { get; set; } = null!;
 
         [Required(ErrorMessage = "Role is required.")]
-        public string Role { get; set; } = "user"!;
+        public string Role { get; set; } = null!;
 
         [Required(ErrorMessage = "Username is required.")]
         public string Username { get; set; } = null!;
