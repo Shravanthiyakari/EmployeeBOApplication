@@ -71,7 +71,7 @@
                             <button type="submit" id="@submitBtnId" class="btn btn-success" disabled>Submit</button>
                         </td>
                         <td>
-                            <button type="button" id="@deleteBtnId" class="btn btn-danger" disabled onclick="deleteRequest('@ticket.TicketingId')">Delete</button>
+                            <button type="button" id="@deleteBtnId" class="btn btn-danger" onclick="deleteRequest('@ticket.TicketingId')">Delete</button>
                         </td>
                         }
                     </form>
@@ -108,7 +108,7 @@
 
             // Enable submit and delete buttons
             $('#submitBtn_' + ticketId).prop('disabled', false);
-            $('#deleteBtn_' + ticketId).prop('disabled', false);
+            //$('#deleteBtn_' + ticketId).prop('disabled', false);
 
             // Disable edit button to prevent multiple clicks
             $('#editBtn_' + ticketId).prop('disabled', true);

@@ -10,8 +10,10 @@ namespace EmployeeBOApp.Models
         ErrorMessage = "Email must be a valid email address.")]
         public string EmailId { get; set; } = null!;
 
-
+        [Required(ErrorMessage = "Role is required.")]
         public string Role { get; set; } = "user"!;
+
+        [Required(ErrorMessage = "Username is required.")]
         public string Username { get; set; } = null!;
     }
 

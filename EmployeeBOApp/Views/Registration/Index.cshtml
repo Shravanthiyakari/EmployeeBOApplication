@@ -48,7 +48,7 @@
     });
 </script>
 
-@using (Html.BeginForm("Register", "HomeLogin", FormMethod.Post))
+@using (Html.BeginForm("Index", "Registration", FormMethod.Post))
 {
     <h2>Registration</h2>
 
@@ -84,7 +84,7 @@
 
     <p class="register" style="text-align: left; margin-top: 10px;">
         Already have an account?
-        <a href="@Url.Action("Login", "HomeLogin")"
+        <a href="@Url.Action("Login", "Login")"
            style="color: #007bff; text-decoration: none; font-size: 14px; font-weight: bold;">
             Login
         </a>

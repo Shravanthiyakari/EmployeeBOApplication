@@ -209,7 +209,7 @@ public class BGVViewController : Controller
             worksheet.Cell(1, 1).Value = "Emp ID";
             worksheet.Cell(1, 2).Value = "Emp Name";
             worksheet.Cell(1, 3).Value = "BGV ID";
-            worksheet.Cell(1, 4).Value = "Status";
+            worksheet.Cell(1, 4).Value = "Ticket Status";
 
             int row = 2;
             foreach (var ticket in filteredTickets)
