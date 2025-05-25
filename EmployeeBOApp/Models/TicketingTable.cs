@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmployeeBOApp.Models;
@@ -33,6 +34,8 @@ public partial class TicketingTable
     public string? Comments { get; set; }
 
     public string? Status { get; set; }
+
+    public string? BGVId { get; set; } = null!;
 
     public virtual EmployeeInformation? Emp { get; set; }
 

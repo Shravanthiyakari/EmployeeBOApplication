@@ -64,6 +64,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using EmployeeBOApp.Repositories.Implementations;
 using EmployeeBOApp.BussinessLayer.Interfaces;
+using EmployeeBOApp.Business.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,7 +81,7 @@ builder.Services.AddScoped<IAllocationRepository, AllocationRepository>();
 builder.Services.AddScoped<IDeallocationRepository, DeallocationRepository>();
 builder.Services.AddScoped<IReportingRepository, ReportingRepository>();
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
-//builder.Services.AddScoped<IAllocationService, AllocationService>();
+builder.Services.AddScoped<IAllocationService, AllocationService>();
 
 
 // Configure authentication

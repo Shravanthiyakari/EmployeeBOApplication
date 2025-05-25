@@ -29,11 +29,14 @@
         <span asp-validation-for="EmpName" class="text-danger"></span>
     </div>
 
+    <input type="hidden" id="confirm" name="confirm" value="false" />
+    <input type="hidden" id="BGVMappingId" name="BGVMappingId" value="" />
+
     <div class="form-group row mt-3">
         <div class="col-sm-12 text-end">
             <button type="submit" class="btn btn-success me-2">Submit Request</button>
             <button type="reset" class="btn btn-secondary">Clear</button>
-    </div>
+        </div>
     </div>
 </form>
 
@@ -42,23 +45,73 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var alertBox = document.querySelector(".alert-success");
+            const form = document.getElementById("employeeInfoForm");
+            const empIdInput = document.getElementById("EmpId");
+            const bgvMappingInput = document.getElementById("BGVMappingId");
+
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault(); // stop native submit
+
+                const empId = empIdInput.value.trim();
+                if (!empId) {
+                    alert("Please enter a valid Employee ID.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/BGV/CheckExistingBGV?empId=${encodeURIComponent(empId)}`);
+                    if (!response.ok) throw new Error("Server error");
+
+                    const result = await response.json();
+
+                    if (result.exists) {
+                        const bgvid = result.bgvid;
+                        const projectId = result.projectId;
+                        const isClosed = result.ProjectStatus;
+                        const deBgvId = result.empbgvid;
+                        const deProjectId = result.empbgvproject;
+
+                        let message = "";
+
+                        if (projectId !=null && bgvid != null) {
+                            message = `BGV already exists for this Project ID: ${projectId}. Do you still want to proceed with a new request?`;
+                        } else if (isClosed) {
+                            message = `BGV already exists but no project is assigned. This request was closed. Do you want to assign a new BGV Request?`;
+                        }
+                        else if(deallocationStatus)
+                        {
+                          message = `This employee was deallocated from Project ID: ${deProjectId}. A BGV already exists (BGV ID: ${deBgvId}). Do you want to proceed with a new BGV request?`;
+                        }
+
+                        if (message) {
+                            if (confirm(message)) {
+                                document.getElementById("confirm").value = "true";
+                                form.submit();
+                            }
+                        } else {
+                            // Default: allow to submit if none of the above apply
+                            form.submit();
+                        }
+                    } else {
+                        form.submit();
+                    }
+                } catch (err) {
+                    alert("Error checking BGV status: " + err.message);
+                }
+
+            });
+
+            // Fade out success alert
+            const alertBox = document.querySelector(".alert-success");
             if (alertBox) {
-                // Show the alert for 3 seconds (3000 ms)
-                setTimeout(function () {
-                    // Fade out effect using opacity transition
+                setTimeout(() => {
                     alertBox.style.transition = "opacity 1s ease";
                     alertBox.style.opacity = '0';
-
-                    // After fade out, remove the alert from DOM
-                    setTimeout(function () {
-                        if (alertBox.parentNode) {
-                            alertBox.parentNode.removeChild(alertBox);
-                        }
-                    }, 1000); // Wait for the fade out to complete before removal
+                    setTimeout(() => {
+                        alertBox.remove();
+                    }, 1000);
                 }, 3000);
             }
         });
     </script>
 }
-

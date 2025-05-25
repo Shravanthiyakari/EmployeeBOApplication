@@ -8,6 +8,7 @@ using EmployeeBOApp.EmailContent;
 using EmployeeBOApp.EmailServices;
 using EmployeeBOApp;
 using EmployeeBOApp.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 [Authorize]
 public class BGVViewController : Controller
@@ -27,15 +28,16 @@ public class BGVViewController : Controller
         int pageSize = 10;
 
         var ticketsQuery = _context.TicketingTables
-            .Include(t => t.Emp)
-            .Where(t => t.RequestType == requestType);
+        .Include(t => t.Emp)
+            .ThenInclude(e => e.BgvMap)
+        .Where(t => t.RequestType == requestType);
 
         if (!string.IsNullOrEmpty(searchQuery))
         {
             ticketsQuery = ticketsQuery.Where(t =>
                 t.Emp.EmpName.Contains(searchQuery) ||
-                t.Emp.EmpId.Contains(searchQuery) ||
-                t.Emp.BGVID.Contains(searchQuery));
+                t.Emp.EmpId.Contains(searchQuery)   ||
+               t.Emp.BgvMap.BGVId.Contains(searchQuery));
         }
 
         var totalItems = await ticketsQuery.CountAsync();
@@ -62,23 +64,64 @@ public class BGVViewController : Controller
         var ticket = await _context.TicketingTables
                                    .Include(t => t.Emp)
                                    .FirstOrDefaultAsync(t => t.TicketingId == id);
+        
+        
+        var latestBgv = await _context.Bgvmaps
+                             .Where(b => b.EmpId == empId)
+                             .OrderByDescending(b => b.Date)
+                             .FirstOrDefaultAsync();
 
         if (ticket != null)
         {
-            // Update EmployeeInformation instead of TicketingTable
             var employee = await _context.EmployeeInformations
-                                         .FirstOrDefaultAsync(e => e.EmpId == empId && e.EmpName == empName);
+            .Include(e => e.BgvMap)
+            .FirstOrDefaultAsync(e => e.EmpId == empId);
 
-            if (employee != null)
+            if (latestBgv != null)
             {
-                employee.BGVID = bgvId;
+                // Step 2: Get employee including its mapped BGV
+
+                if (employee != null && employee.BgvMap != null)
+                {
+                    if (string.IsNullOrEmpty(employee.BgvMap.BGVId))
+                    {
+                        employee.BgvMap.BGVId = latestBgv.BGVId;
+                        employee.BgvMap.BGVMappingId = latestBgv.BGVMappingId;
+
+                        _context.Update(employee.BgvMap); // Optional if already tracked
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+            else
+            {
+                    var bgvEntry = new Bgvmap
+                    {
+                        EmpId = empId,
+                        BGVId = bgvId,
+                        Date = DateTime.Now
+                    };
+
+                    _context.Bgvmaps.Add(bgvEntry);
+                await _context.SaveChangesAsync();
+
+                employee.BGVMappingId = bgvEntry.BGVMappingId;
+                _context.Update(employee.BGVMappingId);
+                await _context.SaveChangesAsync();
             }
 
-            // Update ticket only for status/approval
+                // Update ticket only for status/approval
             ticket.Status = "Closed";
             ticket.ApprovedBy = User.Identity?.Name;
             ticket.ApprovedDate = DateTime.Now;
-
+            if(latestBgv!=null)
+            {
+                ticket.BGVId = latestBgv.BGVId;
+            }
+            else
+            {
+                ticket.BGVId = bgvId;
+            }
             await _context.SaveChangesAsync();
         }
 
@@ -153,7 +196,7 @@ public class BGVViewController : Controller
                 string finalBody = EmailContentForBGVID.EmailContentBGVID
                     .Replace("{EMP_ID}", employee.EmpId)
                     .Replace("{EMP_NAME}", employee.EmpName)
-                    .Replace("{BGV_ID}", employee.BGVID)
+                    .Replace("{BGV_ID}", employee.BgvMap.BGVId)
                     .Replace("{Status}", status)
                     .Replace("{HR_NAME}", "HR-Team");
 
@@ -197,7 +240,7 @@ public class BGVViewController : Controller
              (string.IsNullOrEmpty(searchQuery) ||
                      t.Emp!.EmpId.Contains(searchQuery) ||
                      t.Emp!.EmpName.Contains(searchQuery) ||
-                     t.Emp.BGVID!.Contains(searchQuery)))
+                     t.Emp!.BgvMap!.BGVId.Contains(searchQuery)))
         .ToList();
 
         // 2. Generate Excel file from filteredTickets (using ClosedXML)
@@ -216,7 +259,7 @@ public class BGVViewController : Controller
             {
                 worksheet.Cell(row, 1).Value = ticket.Emp?.EmpId ?? "";
                 worksheet.Cell(row, 2).Value = ticket.Emp?.EmpName ?? "";
-                worksheet.Cell(row, 3).Value = ticket.Emp?.BGVID ?? "";
+                worksheet.Cell(row, 3).Value = ticket.Emp?.BgvMap.BGVId ?? "";
                 worksheet.Cell(row, 4).Value = ticket.Status ?? "";
                 row++;
             }

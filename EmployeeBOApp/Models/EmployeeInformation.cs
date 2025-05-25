@@ -13,7 +13,10 @@ public partial class EmployeeInformation
 
     public string? ProjectId { get; set; }
 
-    public string? BGVID { get; set; } 
+    public int? BGVMappingId { get; set; }
+
+    // 👉 Navigation property to BGVMap
+    public virtual Bgvmap? BgvMap { get; set; }
 
     public virtual ProjectInformation? Project { get; set; }
 
