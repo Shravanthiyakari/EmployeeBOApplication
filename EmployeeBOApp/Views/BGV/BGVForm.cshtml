@@ -67,15 +67,17 @@
                     if (result.exists) {
                         const bgvid = result.bgvid;
                         const projectId = result.projectId;
-                        const isClosed = result.ProjectStatus;
+                        const isClosed = result.projectStatus;
                         const deBgvId = result.empbgvid;
                         const deProjectId = result.empbgvproject;
+                        const deallocationStatus = result.deallocationStatus; 
 
                         let message = "";
 
                         if (projectId !=null && bgvid != null) {
                             message = `BGV already exists for this Project ID: ${projectId}. Do you still want to proceed with a new request?`;
-                        } else if (isClosed) {
+                        }
+                        else if (isClosed) {
                             message = `BGV already exists but no project is assigned. This request was closed. Do you want to assign a new BGV Request?`;
                         }
                         else if(deallocationStatus)

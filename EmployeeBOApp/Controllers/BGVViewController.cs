@@ -77,20 +77,31 @@ public class BGVViewController : Controller
             .Include(e => e.BgvMap)
             .FirstOrDefaultAsync(e => e.EmpId == empId);
 
-            if (latestBgv != null)
+            if (latestBgv != null && string.IsNullOrEmpty(latestBgv.BGVId))
             {
                 // Step 2: Get employee including its mapped BGV
 
-                if (employee != null && employee.BgvMap != null)
+                if (employee?.BgvMap != null)
                 {
-                    if (string.IsNullOrEmpty(employee.BgvMap.BGVId))
-                    {
-                        employee.BgvMap.BGVId = latestBgv.BGVId;
-                        employee.BgvMap.BGVMappingId = latestBgv.BGVMappingId;
+                   // if (string.IsNullOrEmpty(latestBgv.BGVId))
+                   // {
+                        latestBgv.BGVId = bgvId;
+                        employee.BGVMappingId = latestBgv.BGVMappingId;
 
-                        _context.Update(employee.BgvMap); // Optional if already tracked
-                        await _context.SaveChangesAsync();
-                    }
+                        _context.Bgvmaps.Update(latestBgv);
+                        _context.EmployeeInformations.Update(employee); // ✅
+                         await _context.SaveChangesAsync();
+                  //  }
+                    //else
+                    //{
+                    //         employee.BgvMap.BGVId = bgvId;
+                    //         employee.BgvMap.BGVMappingId = latestBgv.BGVMappingId;
+
+                    //    _context.Bgvmaps.Update(latestBgv);
+                    //    _context.Bgvmaps.Update(employee.BgvMap);
+                    //    await _context.SaveChangesAsync();
+                       
+                    //}
                 }
             }
             else
@@ -102,7 +113,7 @@ public class BGVViewController : Controller
                         Date = DateTime.Now
                     };
 
-                    _context.Bgvmaps.Add(bgvEntry);
+                _context.Bgvmaps.Add(bgvEntry);
                 await _context.SaveChangesAsync();
 
                 employee.BGVMappingId = bgvEntry.BGVMappingId;

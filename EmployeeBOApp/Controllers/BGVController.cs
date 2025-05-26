@@ -62,13 +62,12 @@ public class BGVController : Controller
     bool projectStatus = false; // default value
     var empbgvproject = string.Empty;
     var empbgvid = string.Empty;
+
         if (ticket != null && ticket.BGVId != null && ticket.Status == "Closed")
         {
-            var ticketEmpInfo = await _context.EmployeeInformations.Include(e => e.BgvMap)
-                                              .FirstOrDefaultAsync(e => e.EmpId == ticket.EmpId);
-            if (ticketEmpInfo != null)
+            if (employee != null)
             {
-               projectStatus = ticketEmpInfo.ProjectId != null;
+               projectStatus = employee.ProjectId == null;
             }
         }
 
@@ -83,16 +82,16 @@ public class BGVController : Controller
         }
         bool exists = employee.BgvMap != null;
         var bgv = employee.BgvMap;
-
+      
         return Json(new
         {
-            exists,
-            bgvid = bgv!.BGVId,
-            projectId = employee?.ProjectId,
-            projectStatus,
-            deallocationStatus,
-            empbgvproject,
-            empbgvid
+         exists,
+         bgvid = bgv != null ? bgv.BGVId : null,
+         projectId = employee.ProjectId,
+         projectStatus,
+         deallocationStatus,
+         empbgvproject,
+         empbgvid
         });
     }
 
@@ -107,13 +106,6 @@ public class BGVController : Controller
         var existingEmployee = await _context.EmployeeInformations
         .Include(e => e.BgvMap)
         .FirstOrDefaultAsync(e => e.EmpId == model.EmpId);
-
-        if (existingEmployee != null && !confirm)
-        {
-            // Do not proceed unless confirmed via JS
-            TempData["Message"] = "BGV already exists. Please confirm to proceed.";
-            return View("BGVForm", model);
-        }
 
         if (existingEmployee != null && confirm)
         {
@@ -152,7 +144,7 @@ public class BGVController : Controller
         };
 
         _context.TicketingTables.Add(ticket);
-        await _context.SaveChangesAsync(); // Save the new ticket row
+        await _context.SaveChangesAsync(); 
 
         var ccEmails = _context.Logins
        .Where(l => l.Role.Contains("HR"))
