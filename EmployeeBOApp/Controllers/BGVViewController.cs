@@ -106,7 +106,7 @@ public class BGVViewController : Controller
                 await _context.SaveChangesAsync();
 
                 employee.BGVMappingId = bgvEntry.BGVMappingId;
-                _context.Update(employee.BGVMappingId);
+                _context.Update(employee);
                 await _context.SaveChangesAsync();
             }
 
