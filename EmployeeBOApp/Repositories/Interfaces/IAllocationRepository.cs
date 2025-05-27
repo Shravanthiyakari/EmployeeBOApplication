@@ -20,10 +20,12 @@ namespace EmployeeBOApp.Repositories.Interfaces
         List<string> GetShortProjectNames(string currentUserEmail);
         ProjectInformation? GetProjectByShortName(string shortProjectName);
         Task<TicketingTable?> GetExistingOpenAllocationRequest(string empId);
+        Task<TicketingTable?> GetExistingBGVRequest(string empId);
         EmployeeInformation? GetEmployeeById(string empId);
         Task<ProjectInformation?> GetProjectInfoByEmpId(string empId);
         Task AddTicketAsync(TicketingTable ticket);
         Task SaveChangesAsync();
         void AddEmployee(EmployeeInformation employee);
+        void UpdateEmployee(EmployeeInformation employee);
     }
 }

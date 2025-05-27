@@ -45,6 +45,7 @@ namespace EmployeeBOApp.Business.Implementations
         public async Task<(bool Success, string Message)> SubmitAllocationRequest(TicketingTable ticket, string currentUserEmail)
         {
             var existingRequest = await _repository.GetExistingOpenAllocationRequest(ticket.EmpId!);
+            var existingBgv = await _repository.GetExistingBGVRequest(ticket.EmpId);
 
             if (existingRequest != null)
             {
@@ -53,7 +54,7 @@ namespace EmployeeBOApp.Business.Implementations
 
             var employee = _repository.GetEmployeeById(ticket.EmpId!);
 
-            if (employee != null && !employee.Deallocation)
+            if (existingBgv!=null && existingBgv.RequestType != "BGV" && employee != null && !employee.Deallocation)
             {
                 return (false, "This employee is already allocated.");
             }
@@ -69,19 +70,24 @@ namespace EmployeeBOApp.Business.Implementations
                 };
                 _repository.AddEmployee(employee);
             }
+            else
+            {
+                employee.ProjectId = ticket.ProjectId;
+                _repository.UpdateEmployee(employee); // Assuming you have this method
+            }
 
             if (employee.Deallocation)
             {
                 return (false, "Deallocation process not completed for this employee.");
             }
-
-            var projectInfo = await _repository.GetProjectInfoByEmpId(ticket.EmpId!);
-
+           
+            ProjectInformation? projectInfo = null;
+            projectInfo = await _repository.GetProjectInfoByEmpId(ticket.EmpId);
             if (projectInfo == null)
             {
-                return (false, "Project information not found for this employee.");
-            }
-
+               return (false, "Project information not found for this employee.");
+            }         
+            
             ticket.Status = "Open";
             ticket.RequestedDate = DateTime.Now;
             ticket.RequestType = "Allocation";
