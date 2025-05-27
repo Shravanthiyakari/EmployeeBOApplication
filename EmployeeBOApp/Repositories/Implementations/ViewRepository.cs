@@ -34,7 +34,7 @@ namespace EmployeeBOApp.Repositories
             // Role-based filtering
             if (userRoles.Contains("GDO"))
             {
-                query = query.Where(t => t.Status == "InProgress" || t.Status == "Closed" || t.Status == "Reject");
+                query = query.Where(t => t.Status == "InProgress" || t.Status == "Closed" || t.Status == "Rejected");
             }
             else if (userRoles.Contains("DM"))
             {
@@ -89,7 +89,7 @@ namespace EmployeeBOApp.Repositories
             // Role-based filtering
             if (userRoles.Contains("GDO"))
             {
-                query = query.Where(t => t.Status == "InProgress" || t.Status == "Closed" || t.Status == "Reject");
+                query = query.Where(t => t.Status == "InProgress" || t.Status == "Closed" || t.Status == "Rejected");
             }
             else if (userRoles.Contains("DM"))
             {
