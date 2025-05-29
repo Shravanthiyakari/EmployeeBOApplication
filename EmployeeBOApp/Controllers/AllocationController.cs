@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using EmployeeBOApp.Models;
-using EmployeeBOApp.Repositories.Interfaces;
-using EmployeeBOApp.Data;
 using EmployeeBOApp.BussinessLayer.Interfaces;
 
 namespace EmployeeBOApp.Controllers

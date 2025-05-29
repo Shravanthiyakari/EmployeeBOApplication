@@ -27,6 +27,7 @@
                 <th>Emp ID</th>
                 <th>Emp Name</th>
                 <th>BGV ID</th>
+                <th>Expiration Date</th>
                 @if (userRole == "HR")
                 {
                     <th>Edit</th>
@@ -39,6 +40,7 @@
             @foreach (var ticket in Model)
             {
                 var emp = ticket.Emp;
+                bool isClosed = ticket.Status == "Closed";
                 string rowId = $"row_{ticket.TicketingId}";
                 string formId = $"form_{ticket.TicketingId}";
                 string editBtnId = $"editBtn_{ticket.TicketingId}";
@@ -61,19 +63,24 @@
                     <td>
                         <input type="text" id="@bgvInputId" name="bgvId" value="@emp?.BgvMap?.BGVId" class="form-control text-center" readonly />
                     </td>
+                    <td>
+                        <input type="text" class="form-control text-center"
+                               value="@(emp?.BgvMap?.Date != null ? emp.BgvMap.Date.ToString("yyyy-MM-dd") : "")"
+                               readonly />
+                    </td>
+                     @if (userRole == "HR")
+                     {
+                      <td>
+                       <button type="button" id="@editBtnId" class="btn btn-primary" onclick="enableEdit('@ticket.TicketingId')" @(isClosed ? "disabled" : "")>Edit</button>
+                      </td>
+                      <td>
+                         <button type="submit" id="@submitBtnId" class="btn btn-success" @(isClosed ? "disabled" : "disabled")>Submit</button>
+                      </td>
+                      <td>
+                         <button type="button" id="@deleteBtnId" class="btn btn-danger" onclick="deleteRequest('@ticket.TicketingId')" @(isClosed ? "disabled" : "")>Delete</button>
+                      </td>
 
-                        @if (userRole == "HR")
-                        {
-                        <td>
-                            <button type="button" id="@editBtnId" class="btn btn-primary" onclick="enableEdit('@ticket.TicketingId')">Edit</button>
-                        </td>
-                        <td>
-                            <button type="submit" id="@submitBtnId" class="btn btn-success" disabled>Submit</button>
-                        </td>
-                        <td>
-                            <button type="button" id="@deleteBtnId" class="btn btn-danger" onclick="deleteRequest('@ticket.TicketingId')">Delete</button>
-                        </td>
-                        }
+                     }
                     </form>
                 </tr>
             }
@@ -98,39 +105,6 @@
                     $('.pagination').html($(result).find('.pagination').html());
                 }
             });
-        }
-
-        function enableEdit(ticketId) {
-            // Enable editing only for BGV ID field; EmpId and EmpName readonly usually
-            $('#bgvInput_' + ticketId).prop('readonly', false);
-            $('#empNameInput_' + ticketId).prop('readonly', false);
-            $('#empIdInput_' + ticketId).prop('readonly', false);
-
-            // Enable submit and delete buttons
-            $('#submitBtn_' + ticketId).prop('disabled', false);
-            //$('#deleteBtn_' + ticketId).prop('disabled', false);
-
-            // Disable edit button to prevent multiple clicks
-            $('#editBtn_' + ticketId).prop('disabled', true);
-        }
-
-        function deleteRequest(ticketId) {
-            if (confirm("Are you sure you want to delete this request?")) {
-                $.ajax({
-                    url: '@Url.Action("DeleteRequest", "BGVView")',
-                    type: 'POST',
-                    data: {
-                        id: ticketId,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
-                    },
-                    success: function () {
-                        $('#row_' + ticketId).remove();
-                    },
-                    error: function () {
-                        alert("Failed to delete request. Please try again.");
-                    }
-                });
-            }
         }
     </script>
 }
