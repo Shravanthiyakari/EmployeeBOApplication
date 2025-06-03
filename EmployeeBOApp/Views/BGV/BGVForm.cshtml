@@ -71,12 +71,19 @@
                         const deBgvId = result.empbgvid;
                         const deProjectId = result.empbgvproject;
                         const deallocationStatus = result.deallocationStatus; 
-
+                        const ExpiryDate = result.ExpirationDate;
                         let message = "";
 
                         if (projectId !=null && bgvid != null) {
-                            message = `BGV already exists for this Project ID: ${projectId}. Do you still want to proceed with a new request?`;
-                        }
+                            const expiry = new Date(ExpiryDate); // Assuming ExpiryDate is a valid date string
+                            const now = new Date();
+
+                            if (expiry > now) {
+                                message = `BGV already exists and is set to expire on ${ExpiryDate}. Would you still like to proceed with a new request?`;
+                            } else {
+                            message = `BGV has already expired on ${ExpiryDate}. Do you want to create a new request?`;
+                            }                      
+                            }
                         else if (isClosed) {
                             message = `BGV already exists but no project is assigned. This request was closed. Do you want to assign a new BGV Request?`;
                         }

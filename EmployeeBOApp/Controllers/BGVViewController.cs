@@ -169,76 +169,9 @@ public class BGVViewController : Controller
             return RedirectToAction("BGVIndex");
         }
 
-        TempData["Message"] = "BGV details saved, email sent successfully. For modification reach out HR-TEAM";
+       // TempData["Message"] = "BGV details saved, email sent successfully.";
         return RedirectToAction("BGVIndex");
     }
-
-    [HttpPost]
-    [Authorize(Roles = "HR")]
-    public async Task<IActionResult> DeleteRequest(int id)
-    {
-        var ticket = await _context.TicketingTables
-                              .Include(t => t.Emp)
-                              .FirstOrDefaultAsync(t => t.TicketingId == id);
-
-        if (ticket != null && ticket.Emp != null)
-        {
-            // Step 1: Get EmpId from the ticket
-            var empId = ticket.Emp.EmpId;
-
-            // Step 2: Find matching employee in EmployeeInformation table
-            var employee = await _context.EmployeeInformations
-                                         .FirstOrDefaultAsync(e => e.EmpId == empId);
-
-            // Step 3: If found, delete from EmployeeInformation
-            if (employee != null)
-            {
-
-                var pm = ticket!.RequestedBy;
-                string ccEmails = User.Identity?.Name ?? "";
-
-                var DmName = await _context.ProjectInformations
-                    .Where(p => p.PmemailId == pm)
-                    .Select(p => p.DmemailId)
-                    .FirstOrDefaultAsync();
-                string status = "Deleted";
-                string subject = $"Deleted BGV Request for - {employee.EmpName} - {employee.EmpId}";
-
-                string finalBody = EmailContentForBGVID.EmailContentBGVID
-                    .Replace("{EMP_ID}", employee.EmpId)
-                    .Replace("{EMP_NAME}", employee.EmpName)
-                    .Replace("{BGV_ID}", employee.BgvMap.BGVId)
-                    .Replace("{Status}", status)
-                    .Replace("{HR_NAME}", "HR-Team");
-
-                try
-                {
-                    await _emailService.SendEmailAsync(
-                        new List<string> { pm, DmName },
-                        subject,
-                        finalBody,
-                        true,
-                        ccEmails: new List<string> { ccEmails }
-                    );
-                }
-                catch (Exception ex)
-                {
-                    return RedirectToAction("BGVIndex");
-                }
-
-                _context.EmployeeInformations.Remove(employee);
-
-                // Step 4: Delete from TicketingTable
-                _context.TicketingTables.Remove(ticket);
-
-                // Save changes for both deletions
-                await _context.SaveChangesAsync();
-            }
-
-        }
-        return RedirectToAction("BGVIndex");
-    }
-
 
     [HttpPost]
     [ValidateAntiForgeryToken]

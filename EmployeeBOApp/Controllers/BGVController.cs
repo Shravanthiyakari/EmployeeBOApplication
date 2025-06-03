@@ -88,6 +88,7 @@ public class BGVController : Controller
          exists,
          bgvid = bgv != null ? bgv.BGVId : null,
          projectId = employee.ProjectId,
+         ExpirationDate = employee?.BgvMap?.Date.AddYears(1),
          projectStatus,
          deallocationStatus,
          empbgvproject,
@@ -182,7 +183,7 @@ public class BGVController : Controller
             return RedirectToAction("Index");
         }
 
-        TempData["Message"] = "BGV details saved and email sent successfully.";
+        TempData["Message"] = "BGV details saved and email sent successfully.For modifications reach out HR-TEAM";
         return RedirectToAction("Index");
     }
 }

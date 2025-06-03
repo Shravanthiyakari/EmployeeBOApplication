@@ -12,25 +12,6 @@
      // Disable edit button to prevent multiple clicks
      $('#editBtn_' + ticketId).prop('disabled', true);
 }
-function deleteRequest(ticketId) {
-    if (confirm("Are you sure you want to delete this request?")) {
-        $.ajax({
-            url: '@Url.Action("DeleteRequest", "BGVView")',
-            type: 'POST',
-            data: {
-                id: ticketId,
-                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').first().val()
-            },
-            success: function () {
-                $('#row_' + ticketId).remove();
-            },
-            error: function () {
-                alert("Failed to delete request. Please try again.");
-            }
-        });
-    }
-}
-
 
     // Optional: Send update to server to mark as InProgress and save initial BGV ID
     $.ajax({
