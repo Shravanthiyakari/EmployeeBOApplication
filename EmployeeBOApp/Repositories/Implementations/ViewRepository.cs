@@ -504,7 +504,7 @@ namespace EmployeeBOApp.Repositories
                 .Replace("{PROJECT_CODE}", employee.ProjectId)
                 .Replace("{START_DATE}", ticket.StartDate?.ToString("dd-MM-yyyy"))
                 .Replace("{END_DATE}", ticket.EndDate?.ToString("dd-MM-yyyy"))
-                .Replace("{Request_Status}", "Deleted")
+                .Replace("{Request_Status}", "Rejected")
                 .Replace("{user_name}", userName)
                 .Replace("{ACTION_LINK}", actionLink);
             }

@@ -3,6 +3,7 @@ using EmployeeBOApp.Models;
 using EmployeeBOApp.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using EmployeeBOApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeBOApp.Controllers
 {
@@ -63,26 +64,29 @@ namespace EmployeeBOApp.Controllers
             {
                 return Json(new { success = false, message = "Invalid form data" });
             }
+            var existingRequest = await _context.TicketingTables
+                                        .Where(t => t.EmpId == ticket.EmpId
+                                        && t.RequestType == ticket.RequestType
+                                        && (t.Status == "Open" || t.Status == "InProgress"))
+                                        .FirstOrDefaultAsync();
 
-            var hasOpenRequest = await _repo.HasOpenReportingChangeRequestAsync(ticket.EmpId!);
-            if (hasOpenRequest)
+            if (existingRequest != null)
             {
                 return Json(new
                 {
                     success = false,
-                    message = "A Reporting Manager Change request is already open for this employee. You cannot submit another until it is closed."
+                    message = $"A '{ticket.RequestType}' Request is already Open or InProgress for this employee. Please wait until it is closed before submitting another."
+
                 });
             }
 
             var employee = await _repo.GetEmployeeByIdAsync(ticket.EmpId!);
             var projectInfo = await _repo.GetProjectInfoByEmployeeIdAsync(ticket.EmpId!);
             string requestedByEmail = User.Identity?.Name!;
-
             ticket.Status = "Open";
             ticket.RequestedDate = DateTime.Now;
             ticket.EndDate = DateTime.Now;
             ticket.RequestedBy = requestedByEmail;
-            ticket.RequestType = "Reporting Change";
 
             var emailResult = await _repo.SendReportingChangeEmailAsync(ticket, employee, projectInfo, requestedByEmail);
 
@@ -97,4 +101,4 @@ namespace EmployeeBOApp.Controllers
             });
         }
     }
-}
+}    

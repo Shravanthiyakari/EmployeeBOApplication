@@ -77,9 +77,6 @@ public class BGVController : Controller
             deallocationStatus = true;
             empbgvproject = employeeWithBgv.ProjectId;
             empbgvid = employeeWithBgv.BGVId;
-
-
-
         }
         bool exists = employee.BgvMap != null;
         var bgv = employee.BgvMap;

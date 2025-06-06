@@ -130,15 +130,5 @@ public class ReportingRepository : IReportingRepository
             return (false, $"Email failed: {ex.Message}");
         }
     }
-
-    public async Task<bool> HasOpenReportingChangeRequestAsync(string empId)
-    {
-        var reportingTypes = new[] { "ReportingChange", "DepartmentChange", "ManagerChange" };
-
-        return await _context.TicketingTables.AnyAsync(t =>
-            t.EmpId == empId &&
-            reportingTypes.Contains(t.RequestType) &&
-            t.Status != "Closed");
-    }
 }
 
