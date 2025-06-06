@@ -27,6 +27,7 @@ public class BGVController : Controller
     }
 
     [HttpGet]
+
     public async Task<JsonResult> CheckExistingBGV(string empId)
     {
     var employee = await _context.EmployeeInformations
@@ -88,8 +89,10 @@ public class BGVController : Controller
          exists,
          bgvid = bgv != null ? bgv.BGVId : null,
          projectId = employee.ProjectId,
-         ExpirationDate = employee?.BgvMap?.Date.AddYears(1),
-         projectStatus,
+         ExpirationDate = employee?.BgvMap?.Date != null
+                                  ? employee.BgvMap.Date.AddYears(1).ToString("yyyy-MM-dd")
+                                  : null,
+        projectStatus,
          deallocationStatus,
          empbgvproject,
          empbgvid
@@ -126,12 +129,18 @@ public class BGVController : Controller
 
             TempData["Message"] = "BGV request updated successfully.";
         }
-        else
+        else if (existingEmployee == null)
         {
             // Save employee information to the database
             _context.EmployeeInformations.Add(model);
             _context.SaveChanges();
-
+            TempData["Message"] = "BGV request created successfully.";
+        }
+        else
+        {
+            // existingEmployee != null && confirm == false
+            TempData["Message"] = "Employee record already exists";
+            return View("BGVForm", model);
         }
 
         var ticket = new TicketingTable

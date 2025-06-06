@@ -12,6 +12,17 @@
         font-weight: bold;
     }
 
+    .custom-success-message {
+        background-color: #d4edda; /* light green */
+        color: #155724; /* dark green text */
+        padding: 10px;
+        border: 1px solid #c3e6cb;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+
     .validation-error {
         color: red;
         font-size: 12px;
@@ -21,6 +32,15 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Success message auto-hide
+        const successMessage = document.getElementById("successMessage");
+        if (successMessage) {
+            setTimeout(() => {
+                successMessage.style.display = "none";
+            }, 3000);
+        }
+
+        // Form validation
         document.querySelector("form").addEventListener("submit", function (event) {
             let isValid = true;
             let requiredFields = document.querySelectorAll(".required");
@@ -34,7 +54,6 @@
                 let errorElement = document.getElementById(field.name + "Error");
 
                 if (!field.value.trim()) {
-                    // Show validation error message below the field
                     errorElement.textContent = field.getAttribute("data-alert");
                     field.focus();
                     isValid = false;
@@ -48,8 +67,17 @@
     });
 </script>
 
+
 @using (Html.BeginForm("Index", "Registration", FormMethod.Post))
 {
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="successMessage" class="custom-success-message">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+
     <h2>Registration</h2>
 
     <div class="form-group">

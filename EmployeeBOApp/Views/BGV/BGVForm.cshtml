@@ -47,7 +47,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById("employeeInfoForm");
             const empIdInput = document.getElementById("EmpId");
-            const bgvMappingInput = document.getElementById("BGVMappingId");
+            //const bgvMappingInput = document.getElementById("BGVMappingId");
 
             form.addEventListener("submit", async function (e) {
                 e.preventDefault(); // stop native submit
@@ -70,26 +70,27 @@
                         const isClosed = result.projectStatus;
                         const deBgvId = result.empbgvid;
                         const deProjectId = result.empbgvproject;
-                        const deallocationStatus = result.deallocationStatus; 
-                        const ExpiryDate = result.ExpirationDate;
+                        const deallocationStatus = result.deallocationStatus;
+                        const expirationDate = result.expirationDate;
+
                         let message = "";
 
                         if (projectId !=null && bgvid != null) {
-                            const expiry = new Date(ExpiryDate); // Assuming ExpiryDate is a valid date string
-                            const now = new Date();
-
-                            if (expiry > now) {
-                                message = `BGV already exists and is set to expire on ${ExpiryDate}. Would you still like to proceed with a new request?`;
-                            } else {
-                            message = `BGV has already expired on ${ExpiryDate}. Do you want to create a new request?`;
-                            }                      
-                            }
-                        else if (isClosed) {
-                            message = `BGV already exists but no project is assigned. This request was closed. Do you want to assign a new BGV Request?`;
+                           const expiry = new Date(expirationDate); // Assuming ExpiryDate is a valid date string
+                           const now = new Date();
+                           if (expiry < now) {
+                                message = `BGV has already expired on ${expirationDate}. Please initate the new request?`;
+                           }
+                       
                         }
+                      
                         else if(deallocationStatus)
                         {
                           message = `This employee was deallocated from Project ID: ${deProjectId}. A BGV already exists (BGV ID: ${deBgvId}). Do you want to proceed with a new BGV request?`;
+                        }
+                        else{
+                         message = `BGV already exists and is set to expire on ${expirationDate}. Would you still like to proceed with a new request?`;
+
                         }
 
                         if (message) {

@@ -64,23 +64,27 @@ namespace EmployeeBOApp.Controllers
                 return Json(new { success = false, message = "Invalid form data" });
             }
 
-            var employee = await _repo.GetEmployeeByIdAsync(ticket.EmpId!);
-            if (employee == null)
+            var hasOpenRequest = await _repo.HasOpenReportingChangeRequestAsync(ticket.EmpId!);
+            if (hasOpenRequest)
             {
-                return Json(new { success = false, message = "Employee not found" });
+                return Json(new
+                {
+                    success = false,
+                    message = "A Reporting Manager Change request is already open for this employee. You cannot submit another until it is closed."
+                });
             }
 
+            var employee = await _repo.GetEmployeeByIdAsync(ticket.EmpId!);
             var projectInfo = await _repo.GetProjectInfoByEmployeeIdAsync(ticket.EmpId!);
             string requestedByEmail = User.Identity?.Name!;
+
             ticket.Status = "Open";
             ticket.RequestedDate = DateTime.Now;
             ticket.EndDate = DateTime.Now;
             ticket.RequestedBy = requestedByEmail;
+            ticket.RequestType = "Reporting Change";
 
-            var emailResult = await _repo.SendReportingChangeEmailAsync(ticket, employee, projectInfo, requestedByEmail!);
-
-            // Save the ticket after attempting to send email
-            
+            var emailResult = await _repo.SendReportingChangeEmailAsync(ticket, employee, projectInfo, requestedByEmail);
 
             await _repo.SaveTicketAsync(ticket, employee);
 
@@ -89,7 +93,7 @@ namespace EmployeeBOApp.Controllers
                 success = emailResult.Success,
                 message = emailResult.Success
                     ? "Data submitted and email sent successfully!"
-                    : $"Data saved, but {emailResult.Message}"
+                    : $"Data saved, but email failed: {emailResult.Message}"
             });
         }
     }

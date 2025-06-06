@@ -13,20 +13,19 @@
      $('#editBtn_' + ticketId).prop('disabled', true);
 }
 
-    // Optional: Send update to server to mark as InProgress and save initial BGV ID
-    $.ajax({
-        url: '/BGVView/SubmitTicket',
+$.ajax({
+    url: '/BGVView/SubmitTicket',
     type: 'POST',
     data: {
         id: ticketId,
-    bgvId: bgvInput ? bgvInput.value : ""
-            },
+        bgvId: bgvIdValue
+    },
     success: function (response) {
         console.log("Ticket status updated to InProgress");
-            },
+    },
     error: function () {
         alert("An error occurred while updating the ticket.");
-            }
-    });
+    } // no comma here, this is the last property
+});
 
 

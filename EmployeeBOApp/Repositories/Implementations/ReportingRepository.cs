@@ -66,8 +66,6 @@ public class ReportingRepository : IReportingRepository
         return employee;
     }
 
-
-
     public async Task<(string DmEmail, string ProjectName, string DepartmentId, string Dm)> GetProjectInfoByEmployeeIdAsync(string empId)
     {
         var result = await (from emp in _context.EmployeeInformations
@@ -133,5 +131,14 @@ public class ReportingRepository : IReportingRepository
         }
     }
 
+    public async Task<bool> HasOpenReportingChangeRequestAsync(string empId)
+    {
+        var reportingTypes = new[] { "ReportingChange", "DepartmentChange", "ManagerChange" };
+
+        return await _context.TicketingTables.AnyAsync(t =>
+            t.EmpId == empId &&
+            reportingTypes.Contains(t.RequestType) &&
+            t.Status != "Closed");
+    }
 }
 
