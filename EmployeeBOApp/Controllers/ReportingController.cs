@@ -64,47 +64,51 @@ namespace EmployeeBOApp.Controllers
             {
                 return Json(new { success = false, message = "Invalid form data" });
             }
-            var existingRequest = await _context.TicketingTables
-                                        .Where(t => t.EmpId == ticket.EmpId
-                                        && t.RequestType == ticket.RequestType
-                                        && (t.Status == "Open" || t.Status == "InProgress"))
-                                        .FirstOrDefaultAsync();
 
-            // Block if another type of request is already active for the same employee
-            var conflictingRequest = await _context.TicketingTables
-                .Where(t => t.EmpId == ticket.EmpId
-                            && t.RequestType != ticket.RequestType
-                            && (t.Status == "Open" || t.Status == "InProgress"))
-                .FirstOrDefaultAsync();
+            // List of mutually exclusive types
+            var exclusiveTypes = new[] { "Reporting Change", "Manager Change", "Department Change" };
 
-            if (conflictingRequest != null)
+            // Check only if current request is one of the exclusive types
+            if (exclusiveTypes.Contains(ticket.RequestType))
             {
-                return Json(new
-                {
-                    success = false,
-                    message = $"An active '{conflictingRequest.RequestType}' request already exists for this employee. Please close it before submitting a '{ticket.RequestType}' request."
-                });
-            }
+                // Check for conflicting active requests among the other two types
+                var conflictingRequest = await _context.TicketingTables
+                    .Where(t => t.EmpId == ticket.EmpId
+                                && t.RequestType != ticket.RequestType
+                                && exclusiveTypes.Contains(t.RequestType)
+                                && (t.Status == "Open" || t.Status == "InProgress"))
+                    .FirstOrDefaultAsync();
 
-            // Block if same type of request already exists and is active
-            var duplicateRequest = await _context.TicketingTables
-                .Where(t => t.EmpId == ticket.EmpId
-                            && t.RequestType == ticket.RequestType
-                            && (t.Status == "Open" || t.Status == "InProgress"))
-                .FirstOrDefaultAsync();
-
-            if (duplicateRequest != null)
-            {
-                return Json(new
+                if (conflictingRequest != null)
                 {
-                    success = false,
-                    message = $"A '{ticket.RequestType}' request is already Open or InProgress for this employee."
-                });
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"An active '{conflictingRequest.RequestType}' request already exists for this employee. Please close it before submitting a '{ticket.RequestType}' request."
+                    });
+                }
+
+                // Prevent duplicate active submission of the same type
+                var duplicateRequest = await _context.TicketingTables
+                    .Where(t => t.EmpId == ticket.EmpId
+                                && t.RequestType == ticket.RequestType
+                                && (t.Status == "Open" || t.Status == "InProgress"))
+                    .FirstOrDefaultAsync();
+
+                if (duplicateRequest != null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"A '{ticket.RequestType}' request is already Open or InProgress for this employee."
+                    });
+                }
             }
 
             var employee = await _repo.GetEmployeeByIdAsync(ticket.EmpId!);
             var projectInfo = await _repo.GetProjectInfoByEmployeeIdAsync(ticket.EmpId!);
             string requestedByEmail = User.Identity?.Name!;
+
             ticket.Status = "Open";
             ticket.RequestedDate = DateTime.Now;
             ticket.EndDate = DateTime.Now;
@@ -122,4 +126,4 @@ namespace EmployeeBOApp.Controllers
             });
         }
     }
-}    
+}
