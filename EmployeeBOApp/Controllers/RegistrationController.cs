@@ -27,7 +27,7 @@ namespace EmployeeBOApp.Controllers
                 _context.Logins.Add(model);
                 _context.SaveChanges();
                 TempData["SuccessMessage"] = "Successfully registered!";
-                return RedirectToAction("Login", "Login"); // or a success page
+                return RedirectToAction("Index"); // or a success page
             }
 
             return View(model);

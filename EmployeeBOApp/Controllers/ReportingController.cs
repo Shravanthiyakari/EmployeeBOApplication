@@ -64,6 +64,11 @@ namespace EmployeeBOApp.Controllers
             {
                 return Json(new { success = false, message = "Invalid form data" });
             }
+            var existingRequest = await _context.TicketingTables
+                                        .Where(t => t.EmpId == ticket.EmpId
+                                        && t.RequestType == ticket.RequestType
+                                        && (t.Status == "Open" || t.Status == "InProgress"))
+                                        .FirstOrDefaultAsync();
 
             // Block if another type of request is already active for the same employee
             var conflictingRequest = await _context.TicketingTables
@@ -100,7 +105,6 @@ namespace EmployeeBOApp.Controllers
             var employee = await _repo.GetEmployeeByIdAsync(ticket.EmpId!);
             var projectInfo = await _repo.GetProjectInfoByEmployeeIdAsync(ticket.EmpId!);
             string requestedByEmail = User.Identity?.Name!;
-
             ticket.Status = "Open";
             ticket.RequestedDate = DateTime.Now;
             ticket.EndDate = DateTime.Now;
@@ -118,4 +122,4 @@ namespace EmployeeBOApp.Controllers
             });
         }
     }
-}
+}    

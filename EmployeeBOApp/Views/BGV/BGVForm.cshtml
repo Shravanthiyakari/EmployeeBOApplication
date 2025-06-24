@@ -75,15 +75,14 @@
 
                         let message = "";
 
-                        if (projectId !=null && bgvid != null) {
+                        if (bgvid != null) {
                            const expiry = new Date(expirationDate); // Assuming ExpiryDate is a valid date string
                            const now = new Date();
                            if (expiry < now) {
                                 message = `BGV has already expired on ${expirationDate}. Please initate the new request?`;
                            }
                        
-                        }
-                      
+                        }             
                         else if(deallocationStatus)
                         {
                           message = `This employee was deallocated from Project ID: ${deProjectId}. A BGV already exists (BGV ID: ${deBgvId}). Do you want to proceed with a new BGV request?`;
