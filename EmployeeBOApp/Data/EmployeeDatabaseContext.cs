@@ -20,9 +20,7 @@ namespace EmployeeBOApp.Data
         public virtual DbSet<ProjectInformation> ProjectInformations { get; set; }
         public virtual DbSet<TicketingTable> TicketingTables { get; set; }
         public virtual DbSet<Login> Logins { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseSqlServer("Server=DESKTOP-UUFH1U7\\SQLEXPRESS;Database=EmployeeDatabase;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;");
+        public virtual DbSet<Bgvmap> Bgvmaps { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,14 +33,33 @@ namespace EmployeeBOApp.Data
                 entity.Property(e => e.EmpId)
                     .HasMaxLength(100)
                     .HasColumnName("EmpID");
-                entity.Property(e => e.EmpName).HasMaxLength(100);
+
+                entity.Property(e => e.EmpName)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Deallocation)
+                    .IsRequired()
+                    .HasDefaultValue(false);
+
                 entity.Property(e => e.ProjectId)
                     .HasMaxLength(100)
                     .HasColumnName("ProjectID");
 
-                entity.HasOne(d => d.Project).WithMany(p => p.EmployeeInformations)
+                entity.Property(e => e.BGVMappingId)
+                    .HasColumnName("BGVMappingId");
+
+                // Foreign key to ProjectInformation
+                entity.HasOne(d => d.Project)
+                    .WithMany(p => p.EmployeeInformations)
                     .HasForeignKey(d => d.ProjectId)
                     .HasConstraintName("FK__EmployeeI__Proje__4CA06362");
+
+                // Foreign key to Bgvmap
+                entity.HasOne(d => d.BgvMap)
+                    .WithMany(p => p.EmployeeInformations)
+                    .HasForeignKey(d => d.BGVMappingId)
+                    .HasConstraintName("FK_EmployeeInformation_BGVMap");
             });
 
             modelBuilder.Entity<ProjectInformation>(entity =>
@@ -86,6 +103,9 @@ namespace EmployeeBOApp.Data
                     .HasColumnName("EmpID");
                 entity.Property(e => e.RequestedBy).HasMaxLength(100);
                 entity.Property(e => e.Status).HasMaxLength(50);
+                entity.Property(e => e.BGVId)
+                    .HasMaxLength(100)
+                    .HasColumnName("BGVId");
 
                 entity.HasOne(d => d.Emp).WithMany(p => p.TicketingTables)
                     .HasForeignKey(d => d.EmpId)
@@ -106,6 +126,37 @@ namespace EmployeeBOApp.Data
                     .HasMaxLength(50)
                     .IsRequired();
             });
+
+            modelBuilder.Entity<Bgvmap>(entity =>
+            {
+                entity.HasKey(e => e.BGVMappingId)
+                    .HasName("PK__Bgvmap__C7C22B0B4A7F4A20");
+
+                entity.ToTable("Bgvmap");
+
+                entity.Property(e => e.BGVMappingId)
+                    .HasColumnName("BGVMappingId")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.EmpId)
+                .IsRequired()
+                .HasMaxLength(100)
+                .IsUnicode(true);  // nvarchar is Unicode
+
+                entity.Property(e => e.BGVId)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasIndex(e => e.BGVId)
+                    .IsUnique()
+                    .HasDatabaseName("UQ_Bgvmap_BGVId");
+
+                entity.Property(e => e.Date)
+                    .HasColumnType("datetime2")
+                    .IsRequired();
+            });
+
 
             OnModelCreatingPartial(modelBuilder);
         }

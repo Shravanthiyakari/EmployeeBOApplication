@@ -72,8 +72,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Register DbContext
-builder.Services.AddDbContext<EmployeeDatabaseContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<EmployeeDatabaseContext>((serviceProvider, options) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var connectionString = configuration.GetConnectionString("EmployeeDatabaseDbConnectionString");
+
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(11, 8, 2)),
+        mysqlOptions => mysqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null
+        ));
+});
 
 // Register custom services
 builder.Services.ConfigureEmailService(builder.Configuration);
