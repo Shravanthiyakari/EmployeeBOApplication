@@ -3,6 +3,7 @@ using EmployeeBOApp.Models;
 using EmployeeBOApp.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using EmployeeBOApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeBOApp.Controllers
 {
@@ -64,13 +65,35 @@ namespace EmployeeBOApp.Controllers
                 return Json(new { success = false, message = "Invalid form data" });
             }
 
-            var hasOpenRequest = await _repo.HasOpenReportingChangeRequestAsync(ticket.EmpId!);
-            if (hasOpenRequest)
+            // Block if another type of request is already active for the same employee
+            var conflictingRequest = await _context.TicketingTables
+                .Where(t => t.EmpId == ticket.EmpId
+                            && t.RequestType != ticket.RequestType
+                            && (t.Status == "Open" || t.Status == "InProgress"))
+                .FirstOrDefaultAsync();
+
+            if (conflictingRequest != null)
             {
                 return Json(new
                 {
                     success = false,
-                    message = "A Reporting Manager Change request is already open for this employee. You cannot submit another until it is closed."
+                    message = $"An active '{conflictingRequest.RequestType}' request already exists for this employee. Please close it before submitting a '{ticket.RequestType}' request."
+                });
+            }
+
+            // Block if same type of request already exists and is active
+            var duplicateRequest = await _context.TicketingTables
+                .Where(t => t.EmpId == ticket.EmpId
+                            && t.RequestType == ticket.RequestType
+                            && (t.Status == "Open" || t.Status == "InProgress"))
+                .FirstOrDefaultAsync();
+
+            if (duplicateRequest != null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"A '{ticket.RequestType}' request is already Open or InProgress for this employee."
                 });
             }
 
@@ -82,10 +105,8 @@ namespace EmployeeBOApp.Controllers
             ticket.RequestedDate = DateTime.Now;
             ticket.EndDate = DateTime.Now;
             ticket.RequestedBy = requestedByEmail;
-            ticket.RequestType = "Reporting Change";
 
             var emailResult = await _repo.SendReportingChangeEmailAsync(ticket, employee, projectInfo, requestedByEmail);
-
             await _repo.SaveTicketAsync(ticket, employee);
 
             return Json(new
