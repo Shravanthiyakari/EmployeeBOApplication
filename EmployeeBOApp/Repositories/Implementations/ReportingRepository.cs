@@ -10,7 +10,6 @@ public class ReportingRepository : IReportingRepository
 {
     private readonly EmployeeDatabaseContext _context;
     private readonly IEmailService _emailService;
-    private string actionLink = "";
 
     public ReportingRepository(EmployeeDatabaseContext context, IEmailService emailService)
     {
@@ -89,48 +88,69 @@ public class ReportingRepository : IReportingRepository
         _context.EmployeeInformations.Update(employee);
         await _context.SaveChangesAsync();
     }
-    public async Task<(bool Success, string Message)> SendReportingChangeEmailAsync(
-    TicketingTable ticket,
-    EmployeeInformation employee,
-    (string DmEmail, string ProjectName, string DepartmentId, string Dm) projectInfo,
-    string requestedByEmail)
+
+    public async Task<TicketingTable> GetConflictingExclusiveRequestAsync(string empId, string requestType, IEnumerable<string> exclusiveTypes)
     {
-        var subject = $"{ticket.RequestType} Request - {ticket.EmpId} - {employee.EmpName}";
-        if(ticket.Status=="Open")
-        {
-            actionLink = "<a class='action-link' href='https://localhost:7168/Login/Login'>Click here to take decision</a>";
-
-        }
-        string finalBody = EmailContentforRDRequestChange.EmailContentForRDC
-            .Replace("{EMP_ID}", ticket.EmpId)
-            .Replace("{EMP_NAME}", employee?.EmpName)
-            .Replace("{PROJECT_CODE}", employee?.ProjectId)
-            .Replace("{PROJECT_Name}", projectInfo.ProjectName)
-            .Replace("{DEPARTMENT_ID}", projectInfo.DepartmentId)
-            .Replace("{ReportingManager}", projectInfo.Dm)
-            .Replace("{START_DATE}", ticket.StartDate?.ToString("dd-MM-yyyy"))
-            .Replace("{Request_Status}", "Submitted")
-            .Replace("{user_name}", requestedByEmail)
-            .Replace("{ACTION_LINK}", actionLink);
-
-        try
-        {
-            await _emailService.SendEmailAsync(
-                toEmails: new List<string> { projectInfo.DmEmail },
-                subject: subject,
-                body: finalBody,
-                isHtml: true,
-                ccEmails: new List<string> { requestedByEmail }
-            );
-
-            return (true, "Email sent successfully");
-        }
-        catch (Exception ex)
-        {
-            return (false, $"Email failed: {ex.Message}");
-        }
+        return await _context.TicketingTables
+            .Where(t => t.EmpId == empId
+                        && t.RequestType != requestType
+                        && exclusiveTypes.Contains(t.RequestType)
+                        && (t.Status == "Open" || t.Status == "InProgress"))
+            .FirstOrDefaultAsync();
     }
 
-    
+    public async Task<TicketingTable> GetDuplicateRequestAsync(string empId, string requestType)
+    {
+        return await _context.TicketingTables
+            .Where(t => t.EmpId == empId
+                        && t.RequestType == requestType
+                        && (t.Status == "Open" || t.Status == "InProgress"))
+            .FirstOrDefaultAsync();
+    }
+
+
+    //public async Task<(bool Success, string Message)> SendReportingChangeEmailAsync(
+    //TicketingTable ticket,
+    //EmployeeInformation employee,
+    //(string DmEmail, string ProjectName, string DepartmentId, string Dm) projectInfo,
+    //string requestedByEmail)
+    //{
+    //    var subject = $"{ticket.RequestType} Request - {ticket.EmpId} - {employee.EmpName}";
+    //    if(ticket.Status=="Open")
+    //    {
+    //        actionLink = "<a class='action-link' href='https://localhost:7168/Login/Login'>Click here to take decision</a>";
+
+    //    }
+    //    string finalBody = EmailContentforRDRequestChange.EmailContentForRDC
+    //        .Replace("{EMP_ID}", ticket.EmpId)
+    //        .Replace("{EMP_NAME}", employee?.EmpName)
+    //        .Replace("{PROJECT_CODE}", employee?.ProjectId)
+    //        .Replace("{PROJECT_Name}", projectInfo.ProjectName)
+    //        .Replace("{DEPARTMENT_ID}", projectInfo.DepartmentId)
+    //        .Replace("{ReportingManager}", projectInfo.Dm)
+    //        .Replace("{START_DATE}", ticket.StartDate?.ToString("dd-MM-yyyy"))
+    //        .Replace("{Request_Status}", "Submitted")
+    //        .Replace("{user_name}", requestedByEmail)
+    //        .Replace("{ACTION_LINK}", actionLink);
+
+    //    try
+    //    {
+    //        await _emailService.SendEmailAsync(
+    //            toEmails: new List<string> { projectInfo.DmEmail },
+    //            subject: subject,
+    //            body: finalBody,
+    //            isHtml: true,
+    //            ccEmails: new List<string> { requestedByEmail }
+    //        );
+
+    //        return (true, "Email sent successfully");
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        return (false, $"Email failed: {ex.Message}");
+    //    }
+    //}
+
+
 }
 

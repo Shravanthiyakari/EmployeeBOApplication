@@ -10,8 +10,6 @@ namespace EmployeeBOApp.Repositories.Implementations
     public class AllocationRepository : IAllocationRepository
     {
         private readonly EmployeeDatabaseContext _context;
-        private readonly IEmailService _emailService;
-        private string actionLink = "";
 
         public AllocationRepository(EmployeeDatabaseContext context)
         {

@@ -1,8 +1,7 @@
 ﻿using EmployeeBOApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using EmployeeBOApp.Repositories.Interfaces;
-using EmployeeBOApp.Data;
+using EmployeeBOApp.BussinessLayer.Interfaces;
 
 
 namespace EmployeeBOApp.Controllers
@@ -10,12 +9,11 @@ namespace EmployeeBOApp.Controllers
     [Authorize]
     public class DeallocationController : Controller
     {
-        private readonly IDeallocationRepository _deallocationRepo;
-        private readonly EmployeeDatabaseContext _context;
-        public DeallocationController(IDeallocationRepository deallocationRepo, EmployeeDatabaseContext context)
+        private readonly IDeallocationService _deallocationService;
+
+        public DeallocationController(IDeallocationService deallocationService)
         {
-            _deallocationRepo = deallocationRepo;
-            _context = context;
+            _deallocationService = deallocationService;
             
         }
 
@@ -23,7 +21,7 @@ namespace EmployeeBOApp.Controllers
         public async Task<IActionResult> Deallocation()
         {
             var currentUserEmail = User.Identity?.Name;
-            var shortProjectNames = await _deallocationRepo.GetShortProjectNamesForUserAsync(currentUserEmail!);
+            var shortProjectNames = await _deallocationService.GetShortProjectNamesForUserAsync(currentUserEmail!);
             ViewBag.ShortProjectNames = shortProjectNames;
             return View();
         }
@@ -31,7 +29,7 @@ namespace EmployeeBOApp.Controllers
         [HttpGet]
         public async Task<JsonResult> GetEmployeesByProject(string shortProjectName)
         {
-            var employees = await _deallocationRepo.GetEmployeesByProjectAsync(shortProjectName);
+            var employees = await _deallocationService.GetEmployeesByProjectAsync(shortProjectName);
             return Json(employees);
         }
 
@@ -45,7 +43,7 @@ namespace EmployeeBOApp.Controllers
 
             ticket.RequestedBy = User.Identity?.Name;
 
-            var (success, message) = await _deallocationRepo.SubmitDeallocationAsync(ticket);
+            var (success, message) = await _deallocationService.SubmitDeallocationAsync(ticket);
 
             return Json(new { success, message });
         }

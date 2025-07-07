@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EmployeeBOApp.BussinessLayer.Implementations;
+using EmployeeBOApp.BussinessLayer.Interfaces;
+using EmployeeBOApp.Data;
 using EmployeeBOApp.Models;
 using EmployeeBOApp.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using EmployeeBOApp.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeBOApp.Controllers
@@ -11,9 +13,9 @@ namespace EmployeeBOApp.Controllers
     public class ReportingController : Controller
     {
         private readonly EmployeeDatabaseContext _context;
-        private readonly IReportingRepository _repo;
+        private readonly IViewRepoService _repo;
 
-        public ReportingController(EmployeeDatabaseContext context, IReportingRepository repo)
+        public ReportingController(EmployeeDatabaseContext context, IViewRepoService repo)
         {
             _context = context;
             _repo = repo;
@@ -72,12 +74,14 @@ namespace EmployeeBOApp.Controllers
             if (exclusiveTypes.Contains(ticket.RequestType))
             {
                 // Check for conflicting active requests among the other two types
-                var conflictingRequest = await _context.TicketingTables
-                    .Where(t => t.EmpId == ticket.EmpId
-                                && t.RequestType != ticket.RequestType
-                                && exclusiveTypes.Contains(t.RequestType)
-                                && (t.Status == "Open" || t.Status == "InProgress"))
-                    .FirstOrDefaultAsync();
+                var conflictingRequest = await _repo.CheckForConflictingExclusiveRequestAsync(ticket, exclusiveTypes);
+
+                //var conflictingRequest = await _context.TicketingTables
+                //    .Where(t => t.EmpId == ticket.EmpId
+                //                && t.RequestType != ticket.RequestType
+                //                && exclusiveTypes.Contains(t.RequestType)
+                //                && (t.Status == "Open" || t.Status == "InProgress"))
+                //    .FirstOrDefaultAsync();
 
                 if (conflictingRequest != null)
                 {
@@ -89,11 +93,14 @@ namespace EmployeeBOApp.Controllers
                 }
 
                 // Prevent duplicate active submission of the same type
-                var duplicateRequest = await _context.TicketingTables
-                    .Where(t => t.EmpId == ticket.EmpId
-                                && t.RequestType == ticket.RequestType
-                                && (t.Status == "Open" || t.Status == "InProgress"))
-                    .FirstOrDefaultAsync();
+
+                var duplicateRequest = await _repo.CheckForDuplicateRequestAsync(ticket);
+
+                //var duplicateRequest = await _context.TicketingTables
+                //    .Where(t => t.EmpId == ticket.EmpId
+                //                && t.RequestType == ticket.RequestType
+                //                && (t.Status == "Open" || t.Status == "InProgress"))
+                //    .FirstOrDefaultAsync();
 
                 if (duplicateRequest != null)
                 {
