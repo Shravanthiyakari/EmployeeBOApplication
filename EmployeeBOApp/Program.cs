@@ -104,6 +104,10 @@ builder.Services.AddScoped<IBGVService, BGVService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IBGVViewRepository, BGVViewRepository>();
 builder.Services.AddScoped<IBGVViewService, BGVViewService>();
+builder.Services.AddScoped<ILoginRepository, LoginRepository>();
+builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IRegistrationRepository, RegistrationRepository>();
+builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 
 
 

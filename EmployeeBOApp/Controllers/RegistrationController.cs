@@ -1,16 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EmployeeBOApp.BusinessLayer.Interfaces;
 using EmployeeBOApp.Models;
-using EmployeeBOApp.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeBOApp.Controllers
 {
     public class RegistrationController : Controller
     {
-        private readonly EmployeeDatabaseContext _context;
+        private readonly IRegistrationService _registrationService;
 
-        public RegistrationController(EmployeeDatabaseContext context)
+        public RegistrationController(IRegistrationService registrationService)
         {
-            _context = context;
+            _registrationService = registrationService;
         }
 
         [HttpGet]
@@ -20,14 +20,18 @@ namespace EmployeeBOApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult Index(Login model)
+        public async Task<IActionResult> Index(Login model)
         {
             if (ModelState.IsValid)
             {
-                _context.Logins.Add(model);
-                _context.SaveChanges();
-                TempData["SuccessMessage"] = "Successfully registered!";
-                return RedirectToAction("Index"); // or a success page
+                var result = await _registrationService.RegisterUserAsync(model);
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "Successfully registered!";
+                    return RedirectToAction("Index");
+                }
+
+                ModelState.AddModelError("", "Registration failed.");
             }
 
             return View(model);
