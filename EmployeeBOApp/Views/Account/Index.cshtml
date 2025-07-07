@@ -1,0 +1,153 @@
+﻿@{
+    ViewData["Title"] = "New Employee Onboarding";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<div class="container mt-4 mb-5">
+    <h2 class="fw-bold mb-4">Onboarding Employee</h2>
+
+    <div class="accordion" id="onboardingAccordion">
+
+        <!-- Basic Project & Cost Info -->
+        <div class="accordion-item mb-2">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button bg-primary text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                    Basic Project & Cost Info
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#onboardingAccordion">
+                <div class="accordion-body">
+                    <input type="text" class="form-control mb-2" placeholder="Project Name" />
+                    <input type="text" class="form-control mb-2" placeholder="Cost Center" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Details -->
+        <div class="accordion-item mb-2">
+            <h2 class="accordion-header" id="headingTwo">
+                <button class="accordion-button collapsed bg-primary text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                    Assignment Details
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#onboardingAccordion">
+                <div class="accordion-body">
+                    <input type="text" class="form-control mb-2" placeholder="Assignment Role" />
+                    <input type="date" class="form-control mb-2" placeholder="Start Date" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Location & Workspace -->
+        <div class="accordion-item mb-2">
+            <h2 class="accordion-header" id="headingThree">
+                <button class="accordion-button collapsed bg-primary text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                    Work Location & Workspace
+                </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#onboardingAccordion">
+                <div class="accordion-body">
+                    <input type="text" class="form-control mb-2" placeholder="Work Location" />
+                    <input type="text" class="form-control mb-2" placeholder="Desk Number" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Access Requirements -->
+        <div class="accordion-item mb-2">
+            <h2 class="accordion-header" id="headingFour">
+                <button class="accordion-button collapsed bg-primary text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                    Access Requirements
+                </button>
+            </h2>
+            <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#onboardingAccordion">
+                <div class="accordion-body">
+                    <input type="text" class="form-control mb-2" placeholder="Tools Needed" />
+                    <input type="text" class="form-control mb-2" placeholder="Network Access" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Legal & Personal Information -->
+        <div class="accordion-item mb-2">
+            <h2 class="accordion-header" id="headingFive">
+                <button class="accordion-button collapsed bg-primary text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive">
+                    Legal & Personal Information
+                </button>
+            </h2>
+            <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#onboardingAccordion">
+                <div class="accordion-body">
+                    <input type="text" class="form-control mb-2" placeholder="Full Legal Name" />
+                    <input type="text" class="form-control mb-2" placeholder="ID Proof Type" />
+                </div>
+            </div>
+        </div>
+
+        <!-- History & Affiliation -->
+        <div class="accordion-item mb-2">
+            <h2 class="accordion-header" id="headingSix">
+                <button class="accordion-button collapsed bg-primary text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix">
+                    History & Affiliation
+                </button>
+            </h2>
+            <div id="collapseSix" class="accordion-collapse collapse" data-bs-parent="#onboardingAccordion">
+                <div class="accordion-body">
+                    <input type="text" class="form-control mb-2" placeholder="Past Projects" />
+                    <input type="text" class="form-control mb-2" placeholder="Previous Roles" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Background Verification -->
+        <div class="accordion-item mb-2">
+            <h2 class="accordion-header" id="headingSeven">
+                <button class="accordion-button collapsed bg-primary text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven">
+                    Background Verification
+                </button>
+            </h2>
+            <div id="collapseSeven" class="accordion-collapse collapse" data-bs-parent="#onboardingAccordion">
+                <div class="accordion-body">
+                    <input type="text" class="form-control mb-2" placeholder="BGV Status" />
+                    <input type="text" class="form-control mb-2" placeholder="BGV Reference Number" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="text-end mt-4">
+    <button class="btn btn-success" onclick="showConfirmation()">Save & Confirm</button>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Submission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please review your entered details before submitting.</p>
+                <!-- Summary can be enhanced later with JS or Razor Model binding -->
+                <div id="summary-placeholder" class="text-muted">All entered fields will be saved and submitted.</div>
+            </div>
+            <div class="modal-footer">
+                <form method="post" action="/Account/Submit">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showConfirmation() {
+        var modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        modal.show();
+    }
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

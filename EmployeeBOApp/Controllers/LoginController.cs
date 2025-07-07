@@ -39,6 +39,7 @@ namespace EmployeeBOApp.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.EmailId),
+                    new Claim(ClaimTypes.Email, user.EmailId),
                     new Claim(ClaimTypes.Role, user.Role),
                     new Claim("UserName", user.Username ?? "")
                 };

@@ -56,15 +56,18 @@
 //    pattern: "{controller=Login}/{action=Login}/{id?}");
 
 //app.Run();
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using EmployeeBOApp;
+using EmployeeBOApp.Business.Implementations;
+using EmployeeBOApp.BusinessLayer.Interfaces;
+using EmployeeBOApp.BusinessLayer.Services;
+using EmployeeBOApp.BussinessLayer.Interfaces;
 using EmployeeBOApp.Data;
-using EmployeeBOApp.Repositories.Interfaces;
 using EmployeeBOApp.Repositories; // Assuming your implementation class is here
+using EmployeeBOApp.Repositories.Implementations;
+using EmployeeBOApp.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using EmployeeBOApp.Repositories.Implementations;
-using EmployeeBOApp.BussinessLayer.Interfaces;
-using EmployeeBOApp.Business.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,6 +95,16 @@ builder.Services.AddScoped<IDeallocationRepository, DeallocationRepository>();
 builder.Services.AddScoped<IReportingRepository, ReportingRepository>();
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
 builder.Services.AddScoped<IAllocationService, AllocationService>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IBGVRepository, BGVRepository>();
+builder.Services.AddScoped<IBGVService, BGVService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IBGVViewRepository, BGVViewRepository>();
+builder.Services.AddScoped<IBGVViewService, BGVViewService>();
+
 
 
 // Configure authentication

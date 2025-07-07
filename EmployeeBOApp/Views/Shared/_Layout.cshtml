@@ -23,26 +23,35 @@
         <!-- Sidebar -->
         <div class="col-md-3 sidebar">
             <ul class="nav flex-column" role="navigation">
+
+                @* Home link only for PM or HR *@
+                @if (User.IsInRole("PM") || User.IsInRole("HR"))
+                {
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Employee")" class="nav-link text-primary">
+                            <i class="fa fa-home me-2"></i> Home
+                        </a>
+                    </li>
+                }
+
+                @* GDO Request menu for PM or DM *@
                 @if (User.IsInRole("PM") || User.IsInRole("DM"))
                 {
                     <li class="nav-item">
                         <button class="btn btn-primary w-100 text-start d-flex justify-content-between align-items-center"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#gdoRequestMenu"
-                        aria-expanded="false"
-                        aria-controls="gdoRequestMenu">
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#gdoRequestMenu"
+                                aria-expanded="false"
+                                aria-controls="gdoRequestMenu">
                             GDO Request
                             <i class="fa fa-caret-down"></i>
                         </button>
                         <div class="collapse mt-1" id="gdoRequestMenu">
                             <ul class="list-unstyled ps-3">
-                                @if (User.IsInRole("PM") || User.IsInRole("DM"))
-                                {
-                                    <li><a href="@Url.Action("Index", "Allocation")" class="nav-link text-primary">Allocation</a></li>
-                                    <li><a href="@Url.Action("Deallocation", "Deallocation")" class="nav-link text-primary">Deallocation</a></li>
-                                    <li><a href="@Url.Action("ReportingManagerChangeRequest", "Reporting")" class="nav-link text-primary">Reporting Management</a></li>
-                                }
+                                <li><a href="@Url.Action("Index", "Allocation")" class="nav-link text-primary">Allocation</a></li>
+                                <li><a href="@Url.Action("Deallocation", "Deallocation")" class="nav-link text-primary">Deallocation</a></li>
+                                <li><a href="@Url.Action("ReportingManagerChangeRequest", "Reporting")" class="nav-link text-primary">Reporting Management</a></li>
                                 <li><a href="@Url.Action("Index", "View")" class="nav-link text-primary">View Requests</a></li>
                             </ul>
                         </div>

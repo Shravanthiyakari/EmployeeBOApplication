@@ -1,0 +1,70 @@
+﻿@model List<EmployeeBOApp.Models.EmployeeInformation>
+
+@{
+    ViewData["Title"] = "Your Employees";
+    var selectedProjectId = ViewBag.SelectedProjectId as string ?? "Select";
+    var projects = ViewBag.ProjectListAll as List<EmployeeBOApp.Models.ProjectInformation> ?? new List<EmployeeBOApp.Models.ProjectInformation>();
+}
+
+<h2>Employees List</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Emp ID</th>
+            <th>Emp Name</th>
+            <th>
+                Project Name
+                <select id="projectNameHeader" class="form-select form-select-sm mt-1" onchange="projectFilterChanged()">
+                    <option value="Select" selected="@(selectedProjectId == "Select")">All</option>
+                    @foreach (var project in projects)
+                    {
+                        <option value="@project.ProjectId" selected="@(selectedProjectId == project.ProjectId)">
+                            @project.ProjectName
+                        </option>
+                    }
+                </select>
+            </th>
+            <th>BGV ID</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var emp in Model)
+        {
+            <tr>
+                <td>@emp.EmpId</td>
+                <td>@emp.EmpName</td>
+                <td>@(emp.Project?.ProjectName ?? "N/A")</td>
+                <td>@(emp.BgvMap?.BGVId ?? "N/A")</td>
+                <td>
+                    @if (User.IsInRole("PM"))
+                    {
+                        <button class="btn btn-success btn-sm" onclick="location.href='@Url.Action("Index", "BGV")'">BGV Initiation</button>
+                    }
+                    else if (User.IsInRole("HR"))
+                    {
+                        <button class="btn btn-success btn-sm" onclick="location.href='@Url.Action("BGVIndex", "BGVView")'">BGV Initiation</button>
+                    }
+                    <button class="btn btn-success btn-sm"
+                            onclick="location.href='@Url.Action("Index", "Account")'"
+                            @(string.IsNullOrEmpty(emp.BgvMap?.BGVId) ? "disabled" : "")>
+                        V-Initiation
+                    </button>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function projectFilterChanged() {
+        var selectedProjectId = document.getElementById('projectNameHeader').value;
+        if (selectedProjectId === "Select") {
+            window.location.href = '@Url.Action("Index", "Employee")';
+        } else {
+            window.location.href = '@Url.Action("Index", "Employee")' + '?selectedProjectId=' + selectedProjectId;
+        }
+    }
+</script>
