@@ -13,9 +13,9 @@ namespace EmployeeBOApp.Controllers
     public class ReportingController : Controller
     {
         private readonly EmployeeDatabaseContext _context;
-        private readonly IViewRepoService _repo;
+        private readonly IReportingService _repo;
 
-        public ReportingController(EmployeeDatabaseContext context, IViewRepoService repo)
+        public ReportingController(EmployeeDatabaseContext context, IReportingService repo)
         {
             _context = context;
             _repo = repo;

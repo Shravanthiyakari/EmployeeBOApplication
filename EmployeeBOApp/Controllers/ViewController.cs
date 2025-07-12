@@ -1,6 +1,5 @@
 ﻿using ClosedXML.Excel;
-using EmployeeBOApp.Data;
-using EmployeeBOApp.Repositories.Interfaces;
+using EmployeeBOApp.BussinessLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -10,14 +9,12 @@ namespace EmployeeBOApp.Controllers
     [Authorize]
     public class ViewController : Controller
     {
-        private readonly EmployeeDatabaseContext _context;
-        private readonly IViewRepository _viewRepository;
+        private readonly IViewRepoService _viewRepoService;
 
 
-        public ViewController(EmployeeDatabaseContext context, IViewRepository viewRepository)
+        public ViewController( IViewRepoService viewRepoService)
         {
-            _context = context;
-            _viewRepository = viewRepository;
+            _viewRepoService = viewRepoService;
         }
 
         public async Task<IActionResult> Index(string searchQuery, string requestType, int page = 1)
@@ -28,7 +25,7 @@ namespace EmployeeBOApp.Controllers
                 .Select(c => c.Value)
                 .ToList();
 
-            var (tickets, totalItems) = await _viewRepository.GetFilteredTicketsAsync(
+            var (tickets, totalItems) = await _viewRepoService.GetFilteredTicketsAsync(
                 searchQuery, requestType, userEmail, userRoles, page);
 
             ViewData["SearchQuery"] = searchQuery;
@@ -47,7 +44,7 @@ namespace EmployeeBOApp.Controllers
                 .Select(c => c.Value)
                 .ToList();
 
-            var result = await _viewRepository.GetTicketsForExportAsync(
+            var result = await _viewRepoService.GetTicketsForExportAsync(
                 searchQuery, requestType, userEmail, userRoles);
 
             // Generate Excel using ClosedXML
@@ -100,7 +97,7 @@ namespace EmployeeBOApp.Controllers
 
             var approvedBy = User.Identity?.Name;
 
-            var (success, errorMessage) = await _viewRepository.CloseRequestAsync(id, approvedBy!, userRoles);
+            var (success, errorMessage) = await _viewRepoService.CloseRequestAsync(id, approvedBy!, userRoles);
 
             if (!success)
             {
@@ -119,7 +116,7 @@ namespace EmployeeBOApp.Controllers
 
             var approvedBy = User.Identity?.Name;
 
-            var (success, errorMessage) = await _viewRepository.ApproveRequestAsync(id, approvedBy!, userRoles);
+            var (success, errorMessage) = await _viewRepoService.ApproveRequestAsync(id, approvedBy!, userRoles);
 
             if (!success)
             {
@@ -135,7 +132,7 @@ namespace EmployeeBOApp.Controllers
             if (string.IsNullOrEmpty(requestedBy))
                 return Unauthorized();
 
-            var (success, errorMessage) = await _viewRepository.DeleteRequestAsync(id, requestedBy);
+            var (success, errorMessage) = await _viewRepoService.DeleteRequestAsync(id, requestedBy);
 
             if (!success)
                 return Json(new { success = false, message = errorMessage });
@@ -154,7 +151,7 @@ namespace EmployeeBOApp.Controllers
                 .Select(c => c.Value)
                 .ToList();
 
-            var (success, errorMessage) = await _viewRepository.RejectRequestAsync(id, userName, userRoles);
+            var (success, errorMessage) = await _viewRepoService.RejectRequestAsync(id, userName, userRoles);
 
             if (!success)
                 return Json(new { success = false, message = errorMessage });
