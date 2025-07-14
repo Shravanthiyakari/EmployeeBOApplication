@@ -24,7 +24,7 @@ namespace EmployeeBOApp.Repositories.Implementations
                 .FirstOrDefaultAsync(e => e.EmpId == empId);
 
             var employeeWithBgv = await _context.TicketingTables
-                .Where(t => t.RequestType == "Deallocation")
+                .Where(t => t.RequestType == "Deallocation" && t.EmpId == empId)
                 .Join(_context.EmployeeInformations,
                       ticket => ticket.EmpId,
                       emp => emp.EmpId,
@@ -43,6 +43,7 @@ namespace EmployeeBOApp.Repositories.Implementations
 
             bool projectStatus = ticket?.BGVId != null && ticket.Status == "Closed" && employee?.ProjectId == null;
             bool deallocationStatus = employeeWithBgv != null;
+            bool detailsExistAndMapped = employee != null && employee.BGVMappingId != null;
 
             return new
             {
@@ -53,7 +54,8 @@ namespace EmployeeBOApp.Repositories.Implementations
                 projectStatus,
                 deallocationStatus,
                 empbgvproject = employeeWithBgv?.ProjectId,
-                empbgvid = employeeWithBgv?.BGVId
+                empbgvid = employeeWithBgv?.BGVId,
+                detailsExistAndMapped
             };
         }
 
@@ -63,45 +65,72 @@ namespace EmployeeBOApp.Repositories.Implementations
                 .Include(e => e.BgvMap)
                 .FirstOrDefaultAsync(e => e.EmpId == model.EmpId);
 
-            if (existingEmployee != null)
-            {
-                if (existingEmployee.BgvMap == null)
+                if (existingEmployee != null)
                 {
-                    _context.Bgvmaps.Add(new Bgvmap
+                    if (existingEmployee.BGVMappingId == null)
                     {
-                        EmpId = model.EmpId,
-                        BGVId = string.Empty,
-                        Date = DateTime.Now
-                    });
+                        var newBgv = new Bgvmap
+                        {
+                            EmpId = model.EmpId,
+                            BGVId = string.Empty, // Or your value
+                            Date = DateTime.Now
+                        };
 
-                    await _context.SaveChangesAsync();
-                    return (true, "BGV created for existing employee.");
-                }
-                else if (!confirm)
-                {
-                    return (false, "Employee already has BGV. Confirm to update.");
-                }
+                        _context.Bgvmaps.Add(newBgv);
+                        await _context.SaveChangesAsync(); // New BGVMappingId generated!
+
+                        existingEmployee.BGVMappingId = newBgv.BGVMappingId;
+                        await _context.SaveChangesAsync();
+                    }         
+
+                //else if (!confirm)
+                //{
+                //    return (false, "Employee already has BGV. Confirm to update.");
+                //}
                 else
                 {
-                    existingEmployee.BgvMap.Date = DateTime.Now;
-                    existingEmployee.BgvMap.BGVId = Guid.NewGuid().ToString();
-                    _context.Bgvmaps.Update(existingEmployee.BgvMap);
+                    // existingEmployee.BgvMap.Date = DateTime.Now;
+                    //// existingEmployee.BgvMap.BGVId = Guid.NewGuid().ToString();
+                    // _context.Bgvmaps.Update(existingEmployee.BgvMap);
+                    // await _context.SaveChangesAsync();
+                    var newBgvMap = new Bgvmap
+                    {
+                        BGVId = existingEmployee.BgvMap.BGVId, // Make sure you have a new ID
+                        Date = DateTime.Now,
+                        EmpId = existingEmployee.EmpId, // If you have a FK to Employee
+                                                                  // Set other required properties here
+                    };
+                    _context.Bgvmaps.Add(newBgvMap);
                     await _context.SaveChangesAsync();
-                    return (true, "BGV updated successfully for existing employee.");
+                    //return (true, "BGV updated successfully for existing employee.");
                 }
             }
             else
             {
+                // Add the new employee first (without FK for now)
                 _context.EmployeeInformations.Add(model);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // Save to get EmpId if it’s generated
 
-                _context.Bgvmaps.Add(new Bgvmap
+                // Create the new Bgvmap
+                var newBgv = new Bgvmap
                 {
                     EmpId = model.EmpId,
                     BGVId = string.Empty,
                     Date = DateTime.Now
-                });
-                await _context.SaveChangesAsync();
+                };
+
+                _context.Bgvmaps.Add(newBgv);
+                await _context.SaveChangesAsync(); // Save to generate BGVMappingId
+
+                // Fetch the just-added employee (or reuse `model` if still tracked)
+                var insertedEmployee = await _context.EmployeeInformations
+                    .FirstOrDefaultAsync(e => e.EmpId == model.EmpId);
+
+                if (insertedEmployee != null)
+                {
+                    insertedEmployee.BGVMappingId = newBgv.BGVMappingId;
+                    await _context.SaveChangesAsync(); // Save the FK update
+                }
             }
 
             // Add Ticket

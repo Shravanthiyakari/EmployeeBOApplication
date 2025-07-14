@@ -71,10 +71,13 @@
                         const deProjectId = result.empbgvproject;
                         const deallocationStatus = result.deallocationStatus;
                         const expirationDate = result.expirationDate;
+                        const detailsMapped = result.detailsExistAndMapped;
 
                         let message = "";
-
-                        if (bgvid != null) {
+                        if (detailsMapped) {
+                         message = "Employee already has BGV mapping.Please confirm and proceed?";
+                        }
+                        else if (bgvid != null) {
                            const expiry = new Date(expirationDate); // Assuming ExpiryDate is a valid date string
                            const now = new Date();
                            if (expiry < now) {

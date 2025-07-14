@@ -50,7 +50,7 @@
                 string empNameInputId = $"empNameInput_{ticket.TicketingId}";
 
                 <tr id="@rowId">
-                    <form id="@formId" asp-controller="BGVView" asp-action="SubmitTicket" method="post">
+                    <form id="@formId" asp-controller="BGVView" asp-action="SubmitTicket" method="post" onclick="submitTicket(event, '@ticket.TicketingId')">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@ticket.TicketingId" />
                     <td>

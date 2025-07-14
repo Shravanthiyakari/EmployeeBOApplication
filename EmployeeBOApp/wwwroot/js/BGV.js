@@ -13,19 +13,25 @@
      $('#editBtn_' + ticketId).prop('disabled', true);
 }
 
-$.ajax({
-    url: '/BGVView/SubmitTicket',
-    type: 'POST',
-    data: {
-        id: ticketId,
-        bgvId: bgvIdValue
-    },
-    success: function (response) {
-        console.log("Ticket status updated to InProgress");
-    },
-    error: function () {
-        alert("An error occurred while updating the ticket.");
-    } // no comma here, this is the last property
-});
+function submitTicket(event, ticketId) {
+    event.preventDefault(); // ⛔ stop normal form submit
 
+    var bgvIdValue = $('#bgvInput_' + ticketId).val();
+
+    $.ajax({
+        url: '/BGVView/SubmitTicket',
+        type: 'POST',
+        data: {
+            id: ticketId,
+            bgvId: bgvIdValue
+        },
+        success: function (response) {
+            console.log("Ticket status updated to InProgress");
+            // Optionally reload or update UI
+        },
+        error: function () {
+            alert("An error occurred while updating the ticket.");
+        }
+    });
+}
 

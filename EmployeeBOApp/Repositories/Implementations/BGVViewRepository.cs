@@ -50,7 +50,7 @@ namespace EmployeeBOApp.Repositories.Implementations
             if (ticket == null || employee == null)
                 return (false, "Ticket or employee not found", null, "", "", "");
 
-            if (latestBgv != null && string.IsNullOrEmpty(latestBgv.BGVId))
+            if (latestBgv != null && ticket.Status == "Open")
             {
                 latestBgv.BGVId = bgvId;
                 employee.BGVMappingId = latestBgv.BGVMappingId;
