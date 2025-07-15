@@ -2,37 +2,27 @@
 @{
     ViewData["Title"] = "BGV Tickets";
     var userRole = User.IsInRole("HR") ? "HR" : (User.IsInRole("PM") ? "PM" : "");
-    var statusFilter = ViewData["StatusFilter"]?.ToString() ?? "All";
 }
 
 <h2 class="mb-4">View Requests</h2>
 
-<div class="row mb-4">
-    <div class="col-md-4">
-        <label for="searchQuery" class="form-label">Search:</label>
+<div class="mb-4 d-flex align-items-end justify-content-between">
+    <div class="flex-grow-1 me-2">
+        <label for="searchQuery" class="col-form-label">Search:</label>
         <input type="text" id="searchQuery" class="form-control"
                placeholder="Search by Emp Id, Emp Name, BGV Id"
                value="@ViewData["SearchQuery"]" onkeyup="liveSearch()" />
     </div>
-
-    <div class="col-md-3">
-        <label for="statusFilter" class="form-label">Status:</label>
-        <select id="statusFilter" class="form-select" onchange="liveSearch()">
-            <option value="All" selected="@(statusFilter == "All")">All</option>
-            <option value="Open" selected="@(statusFilter == "Open")">Open</option>
-            <option value="Closed" selected="@(statusFilter == "Closed")">Closed</option>
-        </select>
-    </div>
-
-    <div class="col-md-3">
-        <button onclick="exportToExcel()" class="btn btn-success mt-4 w-100">Export to Excel</button>
-    </div>
-
+    <form asp-controller="BGVView" asp-action="ExportToExcel" method="post" class="p-0 m-0 border-0 shadow-none bg-transparent" id="exportForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="searchQuery" id="exportSearchQuery" value="@ViewData["SearchQuery"]" />
+        <button type="submit" class="btn btn-success mt-4">Export to Excel</button>
+    </form>
 </div>
 
 <div id="requestsTableContainer">
     <table class="table table-bordered">
-        <thead class="table-light">
+        <thead>
             <tr>
                 <th>Emp ID</th>
                 <th>Emp Name</th>
@@ -50,43 +40,46 @@
             {
                 var emp = ticket.Emp;
                 bool isClosed = ticket.Status == "Closed";
-                string ticketId = ticket.TicketingId.ToString();
+                string rowId = $"row_{ticket.TicketingId}";
+                string formId = $"form_{ticket.TicketingId}";
+                string editBtnId = $"editBtn_{ticket.TicketingId}";
+                string submitBtnId = $"submitBtn_{ticket.TicketingId}";
+                string deleteBtnId = $"deleteBtn_{ticket.TicketingId}";
+                string bgvInputId = $"bgvInput_{ticket.TicketingId}";
+                string empIdInputId = $"empIdInput_{ticket.TicketingId}";
+                string empNameInputId = $"empNameInput_{ticket.TicketingId}";
 
-                <tr id="row_@ticketId">
-                    <form id="form_@ticketId" asp-controller="BGVView" asp-action="SubmitTicket" method="post" onsubmit="submitTicket(event, '@ticketId')">
+                <tr id="@rowId">
+                    <form id="@formId" asp-controller="BGVView" asp-action="SubmitTicket" method="post" onclick="submitTicket(event, '@ticket.TicketingId')">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@ticketId" />
+                        <input type="hidden" name="id" value="@ticket.TicketingId" />
+                    <td>
+                        <input type="text" id="@empIdInputId" name="empId" value="@emp?.EmpId" class="form-control text-center" readonly />
+                    </td>
+                    <td>
+                        <input type="text" id="@empNameInputId" name="empName" value="@emp?.EmpName" class="form-control text-center" readonly />
+                    </td>
+                    <td>
+                        <input type="text" id="@bgvInputId" name="bgvId" value="@emp?.BgvMap?.BGVId" class="form-control text-center" readonly />
+                    </td>
+                    <td>
+                            @{
+                                var datePlusOneYear = emp?.BgvMap?.Date.AddYears(1).ToString("yyyy-MM-dd") ?? "";
+                            }
+                        <input type="text" class="form-control text-center"
+                               value="@datePlusOneYear"
+                               readonly />
+                    </td>
+                     @if (userRole == "HR")
+                     {
+                      <td>
+                       <button type="button" id="@editBtnId" class="btn btn-primary" onclick="enableEdit('@ticket.TicketingId')" @(isClosed ? "disabled" : "")>Edit</button>
+                      </td>
+                      <td>
+                         <button type="submit" id="@submitBtnId" class="btn btn-success" @(isClosed ? "disabled" : "disabled")>Submit</button>
+                      </td>
 
-                    <td>
-                        <input type="text" id="empIdInput_@ticketId" name="empId" value="@emp?.EmpId" class="form-control text-center" readonly />
-                    </td>
-                    <td>
-                        <input type="text" id="empNameInput_@ticketId" name="empName" value="@emp?.EmpName" class="form-control text-center" readonly />
-                    </td>
-                    <td>
-                        <input type="text" id="bgvInput_@ticketId" name="bgvId" value="@emp?.BgvMap?.BGVId" class="form-control text-center" readonly />
-                    </td>
-                    <td>
-                        @{
-                            var datePlusOneYear = emp?.BgvMap?.Date.AddYears(1).ToString("yyyy-MM-dd") ?? "";
-                        }
-                        <input type="text" class="form-control text-center" value="@datePlusOneYear" readonly />
-                    </td>
-                    @if (userRole == "HR")
-                    {
-                        <td>
-                            <button type="button" id="editBtn_@ticketId" class="btn btn-primary"
-                                    onclick="enableEdit('@ticketId')" @(isClosed ? "disabled" : "")>
-                                Edit
-                            </button>
-                        </td>
-                        <td>
-                            <button type="submit" id="submitBtn_@ticketId" class="btn btn-success"
-                                    @(isClosed ? "disabled" : "disabled")>
-                                Submit
-                            </button>
-                        </td>
-                    }
+                     }
                     </form>
                 </tr>
             }
@@ -94,19 +87,17 @@
     </table>
 </div>
 
-@section Scripts {
+@section Scripts
+{
     <script>
         function liveSearch() {
             var query = $("#searchQuery").val();
-            var status = $("#statusFilter").val();
-
             $("#exportSearchQuery").val(query);
-            $("#exportStatusFilter").val(status);
 
             $.ajax({
                 url: '@Url.Action("BGVIndex", "BGVView")',
                 type: 'GET',
-                data: { searchQuery: query, statusFilter: status, page: 1 },
+                data: { searchQuery: query, page: 1 },
                 success: function (result) {
                     var newHtml = $(result).find('#requestsTableContainer').html();
                     $('#requestsTableContainer').html(newHtml);
@@ -114,44 +105,6 @@
                 }
             });
         }
-                function exportToExcel() {
-            const query = $("#searchQuery").val();
-            const status = $("#statusFilter").val();
-
-            // Create a form dynamically
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '@Url.Action("ExportToExcel", "BGVView")';
-
-            // Add Anti-Forgery token
-            const token = $('input[name="__RequestVerificationToken"]').first().val();
-            if (token) {
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = token;
-                form.appendChild(tokenInput);
-            }
-
-            // Add hidden fields
-            const queryInput = document.createElement('input');
-            queryInput.type = 'hidden';
-            queryInput.name = 'searchQuery';
-            queryInput.value = query;
-            form.appendChild(queryInput);
-
-            const statusInput = document.createElement('input');
-            statusInput.type = 'hidden';
-            statusInput.name = 'statusFilter';
-            statusInput.value = status;
-            form.appendChild(statusInput);
-
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-        }
-
-       
     </script>
     <script src="~/js/BGV.js" asp-append-version="true"></script>
 }

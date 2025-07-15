@@ -1,5 +1,5 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using EmployeeBOApp.BusinessLayer.Interfaces;
+﻿using EmployeeBOApp.BusinessLayer.Interfaces;
+using EmployeeBOApp.BussinessLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +13,12 @@ public class BGVViewController : Controller
         _bgvViewService = bgvViewService;
     }
 
-    public async Task<IActionResult> BGVIndex(string searchQuery, string statusFilter = "All", string requestType = "BGV", int page = 1)
+    public async Task<IActionResult> BGVIndex(string searchQuery, string requestType = "BGV", int page = 1)
     {
-        var viewModel = await _bgvViewService.GetPaginatedTicketsAsync(searchQuery, statusFilter, requestType, page, 10);
-
+        var viewModel = await _bgvViewService.GetPaginatedTicketsAsync(searchQuery, requestType, page, 10);
         ViewData["CurrentPage"] = viewModel.CurrentPage;
         ViewData["TotalPages"] = viewModel.TotalPages;
         ViewData["SearchQuery"] = searchQuery;
-        ViewData["StatusFilter"] = statusFilter;
         ViewData["RequestType"] = requestType;
 
         return View("BGVIndex", viewModel.Tickets);
@@ -30,8 +28,7 @@ public class BGVViewController : Controller
     [Authorize(Roles = "HR")]
     public async Task<IActionResult> SubmitTicket(int id, string bgvId, string empId, string empName)
     {
-        var username = User.Identity?.Name ?? "";
-        var result = await _bgvViewService.ProcessBGVSubmission(id, bgvId, empId, empName, username);
+        var result = await _bgvViewService.ProcessBGVSubmission(id, bgvId, empId, empName, User.Identity?.Name ?? "");
 
         if (!result.Success)
         {
@@ -43,9 +40,9 @@ public class BGVViewController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ExportToExcel(string searchQuery, string statusFilter = "All")
+    public IActionResult ExportToExcel(string searchQuery)
     {
-        var excelFile = _bgvViewService.ExportTicketsToExcel(searchQuery, statusFilter);
+        var excelFile = _bgvViewService.ExportTicketsToExcel(searchQuery);
         return File(excelFile.Content, excelFile.ContentType, excelFile.FileName);
     }
 }

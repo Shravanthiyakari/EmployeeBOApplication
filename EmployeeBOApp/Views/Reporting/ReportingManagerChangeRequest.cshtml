@@ -14,7 +14,7 @@
         <select id="RequestType" name="RequestType" class="form-control select2" required>
             <option value="">-- Select Request Type --</option>
             <option value="ReportingChange">Reporting Change</option>
-           @*  <option value="ManagerChange">Manager Change</option> *@
+            <option value="ManagerChange">Manager Change</option>
             <option value="DepartmentChange">Department Change</option>
         </select>
     </div>
@@ -30,18 +30,19 @@
             }
         </select>
     </div>
+
+    <!-- Employee Name dropdown -->
     <div class="form-group">
-        <label>Emp ID <span style="color:red;">*</span></label>
-        <input type="text" id="EmpID" name="EmpId" class="form-control"
-               maxlength="8"
-               pattern="^P\d{7}$"
-               title="Emp ID should start with 'P' followed by 7 digits (e.g., PO123456)"
-               required />
+        <label>Emp Name <span style="color:red">*</span></label>
+        <select id="EmpName" name="EmpName" class="form-control select2" required>
+            <option value="">-- Select Employee --</option>
+        </select>
     </div>
 
+    <!-- Employee ID (readonly) -->
     <div class="form-group">
-        <label>Employee Name <span style="color:red;">*</span></label>
-        <input type="text" id="Name" name="EmpName" class="form-control" required />
+        <label>Emp ID <span style="color:red">*</span></label>
+        <input type="text" id="EmpID" name="EmpID" class="form-control" required readonly />
     </div>
 
     <!-- Project ID (readonly) -->
